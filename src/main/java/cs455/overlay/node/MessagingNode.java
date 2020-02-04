@@ -14,13 +14,15 @@ public class MessagingNode implements Node {
 		this.receiveTracker = 0;
 	}
 	
-	static String SERVER_ADDRESS = "denver.cs.colostate.edu";
-	static Integer PORT = 5001;
+	static String SERVER_ADDRESS = "localhost";
+	static Integer PORT = 0;
 
 	public static void main(String[] args) throws IOException {
 		Socket socketToTheServer = null;
 		DataInputStream inputStream = null;
 		DataOutputStream outputStream = null; 
+		
+		PORT = Integer.valueOf(args[0]);
 
 		try {
 			//We create the socket AND try to connect to the address and port we are running the server on

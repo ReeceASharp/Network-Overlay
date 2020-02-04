@@ -2,25 +2,29 @@ package cs455.overlay.node;
 
 import java.io.*;
 import java.net.*;
+//import java.nio.Buffer;
+import java.util.Scanner;
 
 import cs455.overlay.wireformats.Event;
 
 public class Registry implements Node {
 	
-	public Registry() {
-		
-	}
+	private static final Scanner keyboard = new Scanner(System.in);
+	//private static Buffer fifo = BufferUtils.synchronizedBuffer();
 	
 	//We specify the port 5001, which is what we will listen to for incoming connections
-	static Integer OUR_PORT = 5001;
+	static Integer OUR_PORT = 0;
 
 	public static void main(String[] args) throws IOException {
 		Integer NUM_POSSIBLE_CONNECTIONS = 1;
 		ServerSocket ourServerSocket = null;
 		
+		System.out.print("Registry.java::");
+		
 		try {
 			//Create the server socket
 			ourServerSocket = new ServerSocket(OUR_PORT, NUM_POSSIBLE_CONNECTIONS);
+			System.out.printf("Port: %d\n", ourServerSocket.getLocalPort());
 		} catch(IOException e) {
 			System.out.println("Client::main::creating_the_socket:: " + e);
 			System.exit(1);
@@ -82,7 +86,70 @@ public class Registry implements Node {
 	@Override
 	public void onEvent(Event e) {
 		// TODO Auto-generated method stub
-
+		switch(e.getType()) {
+			case (2):	//OVERLAY_NODE_SENDS_REGISTRATION
+				nodeRegistration();
+				break;
+			case (4):	//OVERLAY_NODE_SENDS_DEREGISTRATION 
+				nodeDeRegistration();
+				break;
+			case (7):	//NODE_REPORTS_OVERLAY_SETUP_STATUS 
+				nodeSetupStatus();
+				break;
+			case (10):	//OVERLAY_NODE_REPORTS_TASK_FINISHED
+				break;
+			case (12):
+				
+				break;
+			default:
+				System.err.println("Registry::onEvent::invalid message");
+				break;
+		}
 	}
-
+	
+	//node wants to register with the registry
+	private void nodeRegistration() {
+		
+	}
+	
+	//node wants to deregister
+	private void nodeDeRegistration() {
+		
+	}
+	
+	//node is reporting its status
+	private void nodeSetupStatus() {
+		
+	}
+	
+	private void loop() {
+		boolean exit = false;
+		while (!exit) {
+			String input = keyboard.nextLine();
+			
+			
+			
+		}
+	}
+	
+	private void checkInput(String input) {
+		String[] args = input.split(" ");
+		switch (args[0]) {
+			case "list-messaging-nodes":
+				
+				break;
+			case "setup-overlay":
+				setupOverlay(args);
+				break;
+			case "list-routing-tables":
+				break;
+			case "start":
+				break;
+			}
+	}
+	
+	private void setupOverlay(String[] args) {
+		
+	}
+	
 }
