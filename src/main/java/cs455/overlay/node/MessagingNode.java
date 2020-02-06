@@ -1,76 +1,56 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.wireformats.Event;
 import java.io.*;
-import java.net.*;
+import java.util.Random;
 
 public class MessagingNode implements Node {
 	int sendTracker;		// # of messages sent
 	int receiveTracker;		// # of messages received
+	TCPConnectionsCache cache;	//holds the socket addresses
+	static final Random rng = new Random();	//ID # generator
 	
-	public MessagingNode() {
-		//pg 9, 4.1
-		this.sendTracker = 0;
-		this.receiveTracker = 0;
-	}
-	
-	static String SERVER_ADDRESS = "localhost";
-	static Integer PORT = 0;
+	static final int MAX_SIZE = 128;
 
 	public static void main(String[] args) throws IOException {
-		Socket socketToTheServer = null;
-		DataInputStream inputStream = null;
-		DataOutputStream outputStream = null; 
+		//A. Allows messaging nodes to register themselves. This is performed when a messaging node starts
+		//up for the first time.
+		System.out.printf("# of args: %d\n", args.length);
+		for (int i = 0; i < args.length; i++) {
+			System.out.printf("'%s' ", args[i]);
+		}
 		
-		PORT = Integer.valueOf(args[0]);
-
-		try {
-			//We create the socket AND try to connect to the address and port we are running the server on
-			socketToTheServer = new Socket(SERVER_ADDRESS, PORT);
-			inputStream = new DataInputStream(socketToTheServer.getInputStream());
-			outputStream = new DataOutputStream(socketToTheServer.getOutputStream());
-		} catch(IOException e) {
-			System.out.println("Client::main::creating_the_socket:: " + e);
-			System.exit(1);
+		if (args.length != 1) {
+			
+			System.out.println("Port parameter not specified Ex: '45650'");
+			return;
 		}
-		// We assume that if we get here we have connected to the server.
-		System.out.println("Connected to the server.");
-
-		try {
-			Integer msgLength = 0;
-			//Try to read an integer from our input stream. This will block if there is nothing.
-			msgLength = inputStream.readInt();
-
-			//If we got here that means there was an integer to read and we have the 
-			// length of the rest of the next message.
-			System.out.println("Received a message length of: " + msgLength);
-
-			//Try to read the incoming message.
-			byte[] incomingMessage = new byte[msgLength];
-			inputStream.readFully(incomingMessage, 0, msgLength);
-
-			//You could have used .read(byte[] incomingMessage), however this will read 
-			// *potentially* incomingMessage.length bytes, maybe less.
-			// Whereas .readFully(...) will read exactly msgLength number of bytes. 
-
-			System.out.println("Received Message: " + incomingMessage);
-
-			//Now, let's respond.
-			byte[] msgToServer = new String("CS455").getBytes();
-			Integer msgToServerLength = msgToServer.length;
-			//Our self-inflicted protocol says we send the length first
-			outputStream.writeInt(msgToServerLength);
-			//Then we can send the message
-			outputStream.write(msgToServer, 0, msgToServerLength);
-
-			//Close streams and then sockets
-			inputStream.close();
-			outputStream.close();
-			socketToTheServer.close();
-		} catch(IOException e) {
-			System.out.println("Client::main::talking_to_the_server:: " + e);
-			System.exit(1);
-		}
+		
+		
+		
+		
+		//Thread receiver = new Thread(TCPServerThread());
+		
+		//B. Assign random identifiers (between 0-127) to nodes within the system; the registry also has to
+		//ensure that two nodes are not assigned the same IDs i.e., there should be no collisions in the
+		//ID space.
+		
+		//check for space
+		boolean valid = true;
+		do {
+			
+			
+			
+		}while (!valid);
+		
+		//C. Allows messaging nodes to deregister themselves. This is performed when a messaging node
+		//leaves the overlay.
+		//D. Enables the construction of the overlay by populating the routing table at the messaging nodes.
+		//The routing table dictates the connections that a messaging node initiates with other messaging
+		//nodes in the system. 
+		
+		return;
 	}
 	
 	

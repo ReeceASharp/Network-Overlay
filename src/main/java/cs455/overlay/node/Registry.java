@@ -1,85 +1,28 @@
 package cs455.overlay.node;
 
 import java.io.*;
-import java.net.*;
-//import java.nio.Buffer;
+import java.util.ArrayList;
 import java.util.Scanner;
 
+import cs455.overlay.util.Consts;
+import cs455.overlay.util.InteractiveCommandParser;
+import cs455.overlay.util.StatisticsCollectorAndDisplay;
 import cs455.overlay.wireformats.Event;
 
 public class Registry implements Node {
 	
-	private static final Scanner keyboard = new Scanner(System.in);
-	//private static Buffer fifo = BufferUtils.synchronizedBuffer();
+	private InteractiveCommandParser parser = new InteractiveCommandParser(Consts.REGISTRY);
+	private Scanner keyboard = new Scanner(System.in);
+	
+	private static StatisticsCollectorAndDisplay statDisplay = new StatisticsCollectorAndDisplay();
 	
 	//We specify the port 5001, which is what we will listen to for incoming connections
 	static Integer OUR_PORT = 0;
+	
+	private static ArrayList<nodeEntry> nodeList;
 
 	public static void main(String[] args) throws IOException {
-		Integer NUM_POSSIBLE_CONNECTIONS = 1;
-		ServerSocket ourServerSocket = null;
-		
-		System.out.print("Registry.java::");
-		
-		try {
-			//Create the server socket
-			ourServerSocket = new ServerSocket(OUR_PORT, NUM_POSSIBLE_CONNECTIONS);
-			System.out.printf("Port: %d\n", ourServerSocket.getLocalPort());
-		} catch(IOException e) {
-			System.out.println("Client::main::creating_the_socket:: " + e);
-			System.exit(1);
-		}
-		try {
-			//Block on accepting connections. Once it has received a connection it will return a socket for us to use.
-			Socket incomingConnectionSocket = ourServerSocket.accept();
-
-			//If we get here we are no longer blocking, so we accepted a new connection
-			System.out.println("We received a connection!");
-
-			//We have yet to block again, so we can handle this connection however we would like to.
-			//For now, let's send a message and then wait for the response.
-			DataInputStream inputStream = new DataInputStream(incomingConnectionSocket.getInputStream());
-			DataOutputStream outputStream = new DataOutputStream(incomingConnectionSocket.getOutputStream());
-
-			//Let's send a message to our new friend
-			byte[] msgToClient = new String("What class is this video for?").getBytes();
-			Integer msgToClientLength = msgToClient.length;
-
-			//Our self-inflicted protocol says we send the length first
-			outputStream.writeInt(msgToClientLength);
-			//Then we can send the message
-			outputStream.write(msgToClient, 0, msgToClientLength);
-
-			//Now we wait for their response.
-			Integer msgLength = 0;
-			//Try to read an integer from our input stream. This will block if there is nothing.
-			msgLength = inputStream.readInt();
-
-			//If we got here that means there was an integer to 
-			// read and we have the length of the rest of the next message.
-			System.out.println("Received a message length of: " + msgLength);
-
-			//Try to read the incoming message.
-			byte[] incomingMessage = new byte[msgLength];
-			inputStream.readFully(incomingMessage, 0, msgLength);
-
-			//You could have used .read(byte[] incomingMessage), however this will read 
-			// *potentially* incomingMessage.length bytes, maybe less.
-			//Whereas .readFully(...) will read exactly msgLength number of bytes. 
-
-			System.out.println("Received Message: " + incomingMessage);
-
-			//Close streams and then sockets
-			inputStream.close();
-			outputStream.close();
-			incomingConnectionSocket.close();
-			ourServerSocket.close();
-
-		} catch (IOException e) {
-            System.out.println("Server::main::accepting_connections:: " + e);
-            System.exit(1);
-        }
-
+		nodeList = new ArrayList<>();
 	}
 	
 
@@ -87,22 +30,23 @@ public class Registry implements Node {
 	public void onEvent(Event e) {
 		// TODO Auto-generated method stub
 		switch(e.getType()) {
-			case (2):	//OVERLAY_NODE_SENDS_REGISTRATION
+			case (Consts.OVERLAY_NODE_SENDS_REGISTRATION):
 				nodeRegistration();
 				break;
-			case (4):	//OVERLAY_NODE_SENDS_DEREGISTRATION 
+			case (Consts.OVERLAY_NODE_SENDS_DEREGISTRATION):
 				nodeDeRegistration();
 				break;
-			case (7):	//NODE_REPORTS_OVERLAY_SETUP_STATUS 
+			case (Consts.NODE_REPORTS_OVERLAY_SETUP_STATUS):
 				nodeSetupStatus();
 				break;
-			case (10):	//OVERLAY_NODE_REPORTS_TASK_FINISHED
+			case (Consts.OVERLAY_NODE_REPORTS_TASK_FINISHED):
+				nodeTaskFinished();
 				break;
-			case (12):
-				
+			case (Consts.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY):
+				nodeReportTraffic();
 				break;
 			default:
-				System.err.println("Registry::onEvent::invalid message");
+				System.err.printf("Registry::onEvent::invalid control message: %d%n", e.getType());
 				break;
 		}
 	}
@@ -122,34 +66,20 @@ public class Registry implements Node {
 		
 	}
 	
-	private void loop() {
-		boolean exit = false;
-		while (!exit) {
-			String input = keyboard.nextLine();
-			
-			
-			
-		}
+	private void nodeTaskFinished() {
+		
 	}
 	
-	private void checkInput(String input) {
-		String[] args = input.split(" ");
-		switch (args[0]) {
-			case "list-messaging-nodes":
-				
-				break;
-			case "setup-overlay":
-				setupOverlay(args);
-				break;
-			case "list-routing-tables":
-				break;
-			case "start":
-				break;
-			}
+	private void nodeReportTraffic() {
+		
+		
 	}
 	
 	private void setupOverlay(String[] args) {
 		
 	}
 	
+	private void listNodes() {
+		
+	}
 }
