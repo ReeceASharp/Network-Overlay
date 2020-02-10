@@ -2,20 +2,27 @@ package cs455.overlay.util;
 
 import java.util.Scanner;
 
+import cs455.overlay.node.Node;
+
 public class InteractiveCommandParser implements Runnable {
 	int type;
+	Node node;
 	
 	private Scanner input = new Scanner(System.in);
 	
-	public InteractiveCommandParser(int type) {
+	public InteractiveCommandParser(int type, Node node) {
 		this.type = type;
+		this.node = node;
 	}
-	
 	
 	@Override
 	public void run() {
-		String command = input.nextLine();
-		parseInput(command);
+		System.out.println("InteractiveCommandParser::run");
+		while(true) {
+			System.out.print("Input: ");
+			String command = input.nextLine();
+			parseInput(command);
+		}
 		
 		
 	}

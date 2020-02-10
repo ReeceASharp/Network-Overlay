@@ -1,6 +1,9 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
+import cs455.overlay.transport.TCPSender;
+import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import java.io.*;
 import java.util.Random;
@@ -27,7 +30,8 @@ public class MessagingNode implements Node {
 			return;
 		}
 		
-		
+		Thread server = new Thread(new TCPServerThread());
+		server.start();
 		
 		
 		//Thread receiver = new Thread(TCPServerThread());

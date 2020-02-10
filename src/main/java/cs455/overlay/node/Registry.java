@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.Consts;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.util.StatisticsCollectorAndDisplay;
@@ -11,18 +12,29 @@ import cs455.overlay.wireformats.Event;
 
 public class Registry implements Node {
 	
-	private InteractiveCommandParser parser = new InteractiveCommandParser(Consts.REGISTRY);
 	private Scanner keyboard = new Scanner(System.in);
-	
-	private static StatisticsCollectorAndDisplay statDisplay = new StatisticsCollectorAndDisplay();
+	private Thread parser = new Thread(new InteractiveCommandParser(Consts.REGISTRY, this));
+	private static StatisticsCollectorAndDisplay statDisplay;
 	
 	//We specify the port 5001, which is what we will listen to for incoming connections
 	static Integer OUR_PORT = 0;
 	
+	
 	private static ArrayList<nodeEntry> nodeList;
-
+	
 	public static void main(String[] args) throws IOException {
+		System.out.println("Registry::main");
+		
+		//Routing Table
 		nodeList = new ArrayList<>();
+		statDisplay = new StatisticsCollectorAndDisplay();
+		
+		//kick-start the listener for new nodes wanting to register
+		Thread server = new Thread(new TCPServerThread());
+		server.start();
+		
+		
+		
 	}
 	
 
