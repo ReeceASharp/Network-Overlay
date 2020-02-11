@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 
+import cs455.overlay.node.Node;
+import cs455.overlay.wireformats.Event;
+
 
 public class TCPReceiverThread implements Runnable {
 	
@@ -14,15 +17,17 @@ public class TCPReceiverThread implements Runnable {
 	
 	private Socket socket;
 	private DataInputStream dataIn;
+	private Node node;
 	
-	public TCPReceiverThread(Socket socket) throws IOException {
+	public TCPReceiverThread(Socket socket, Node node) throws IOException {
 		//pg 9, 4.1
 		System.out.printf("TCPReceiverThread::ctor(), Socket: %s%n", socket.toString());
 		this.socket = socket;
 		dataIn = new DataInputStream(socket.getInputStream());
+		this.node = node;
 		
 	}
-	
+	 
 	
 	@Override
 	public void run() {
@@ -37,11 +42,14 @@ public class TCPReceiverThread implements Runnable {
 				
 				System.out.println("Received a message length of: " + dataLength);
 				
-				
-	
 				byte[] incomingMessage = new byte[dataLength];
 				dataIn.readFully(incomingMessage, 0, dataLength);
 				
+				Event e = node.getFactory().createEvent(incomingMessage);
+				
+				
+				//received message, decode
+				node.onEvent(e);
 				
 				System.out.println("Received Message: " + new String(incomingMessage));
 				

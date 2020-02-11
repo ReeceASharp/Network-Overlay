@@ -3,16 +3,18 @@ package cs455.overlay.wireformats;
 import java.nio.ByteBuffer;
 
 public class EventFactory {
+	
 	private static final EventFactory instance = new EventFactory();
 	
-	private EventFactory() {}
+	private EventFactory() { }
 	
 	public static EventFactory getInstance() {
 		return instance;
 	}
 	
 	public Event createEvent(byte[] marshalledBytes) {
-		switch (ByteBuffer.wrap(marshalledBytes).getInt()) {
+		int value = ByteBuffer.wrap( marshalledBytes ).getInt(); 
+		switch (value) {
 			case 2:
 				return new OverlayNodeSendsRegistration();
 			case 3:
@@ -36,7 +38,7 @@ public class EventFactory {
 			case 12:
 				return new OverlayNodeReportsTrafficSummary();
 			default:
-				System.err.println("EventFactory::createEvent: 'Could not create Error'");
+				System.err.printf("EventFactory::createEvent: 'Could not create Error': %d%n", value);
 				return null;
 		}
 	}

@@ -25,14 +25,14 @@ public class TCPServerThread implements Runnable {
 	public void run() {
 		//System.out.println("TCPServerThread::run::");
 		
-		
 		try {
 			serverSocket = new ServerSocket(0, NUM_POSSIBLE_CONNECTIONS);
 			
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
-		System.out.printf("TCPServer listening on %s", serverSocket.getInetAddress());
+		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getInetAddress(), 
+				serverSocket.getLocalPort(), serverSocket.getLocalSocketAddress());
 		//System.out.printf("TCPServer: Port=%d%n", serverSocket.getLocalPort());
 		
 		boolean listening = true;
@@ -47,7 +47,7 @@ public class TCPServerThread implements Runnable {
 				System.out.println(cache.toString());
 				
 				//spawn a thread to handle that specific connection, 
-				new Thread(new TCPReceiverThread(clientSocket)).start();
+				new Thread(new TCPReceiverThread(clientSocket, node)).start();
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

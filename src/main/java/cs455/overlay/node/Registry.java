@@ -5,22 +5,23 @@ import java.io.*;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.Consts;
 import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.EventFactory;
 
 public class Registry implements Node {
 	
 	//private Scanner keyboard = new Scanner(System.in);
 	//private Thread parser = new Thread(new InteractiveCommandParser(Consts.REGISTRY, this));
 	//private static StatisticsCollectorAndDisplay statDisplay;
+	private EventFactory factory;
 	
-	
-	public Registry() { }
+	public Registry() { 
+		factory = EventFactory.getInstance();
+	}
 	
 	public static void main(String[] args) throws IOException {
 		System.out.println("Registry::main");
 		
 		Registry node = new Registry();
-		
-		
 		
 		//start the server thread that will listen for clients wanting to connect
 		Thread server = new Thread(new TCPServerThread(node));
@@ -52,6 +53,10 @@ public class Registry implements Node {
 				System.err.printf("Registry::onEvent::invalid control message: %d%n", e.getType());
 				break;
 		}
+	}
+	
+	public EventFactory getFactory() {
+		return factory;
 	}
 	
 	//node wants to register with the registry
