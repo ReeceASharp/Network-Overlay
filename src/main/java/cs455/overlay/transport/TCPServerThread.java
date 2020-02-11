@@ -32,8 +32,8 @@ public class TCPServerThread implements Runnable {
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
-		
-		System.out.printf("TCPServer: Port=%d%n", serverSocket.getLocalPort());
+		System.out.printf("TCPServer listening on %s", serverSocket.getInetAddress());
+		//System.out.printf("TCPServer: Port=%d%n", serverSocket.getLocalPort());
 		
 		boolean listening = true;
 		//listen for new connections to this program
