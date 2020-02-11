@@ -12,16 +12,22 @@ public class Registry implements Node {
 	//private Thread parser = new Thread(new InteractiveCommandParser(Consts.REGISTRY, this));
 	//private static StatisticsCollectorAndDisplay statDisplay;
 	
+	
+	public Registry() { }
+	
 	public static void main(String[] args) throws IOException {
 		System.out.println("Registry::main");
 		
+		Registry node = new Registry();
+		
+		
+		
 		//start the server thread that will listen for clients wanting to connect
-		Thread server = new Thread(new TCPServerThread());
+		Thread server = new Thread(new TCPServerThread(node));
 		server.start();
 		
 		
 	}
-	
 
 	@Override
 	public void onEvent(Event e) {

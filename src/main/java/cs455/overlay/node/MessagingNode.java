@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.wireformats.Event;
 import java.io.*;
 import java.net.Socket;
@@ -9,48 +10,55 @@ public class MessagingNode implements Node {
 	//int receiveTracker;		// # of messages received
 	//TCPConnectionsCache cache;	//holds the socket addresses
 	//static final Random rng = new Random();	//ID # generator
+	
+	
+	private MessagingNode() {}
+	
 
 	public static void main(String[] args) throws IOException {
 		//A. Allows messaging nodes to register themselves. This is performed when a messaging node starts
-		//up for the first time.
-		/*
-		System.out.printf("# of args: %d\n", args.length);
-		for (int i = 0; i < args.length; i++) {
-			System.out.printf("'%s' ", args[i]);
-		}
-		System.out.println();
 		
-		if (args.length != 1) {
-			
-			System.out.println("Port parameter not specified Ex: '45650'");
-			return;
-		}*/
+		//up for the first time.
+		
+		//get instance of self to pass a reference into the threads
+		MessagingNode self = new MessagingNode();
+		System.out.println(self);
 		
 		//start server to listen for incoming connections
-		//Thread server = new Thread(new TCPServerThread());
-		//server.start();
+		Thread server = new Thread(new TCPServerThread(self));
+		server.start();
 		
 		
 		//Attempting to open a connection with the Registry
 		Socket socketToRegistry = null;
 		DataOutputStream outputStream = null;
-		
 		try {
 			socketToRegistry = new Socket("localhost", Integer.parseInt(args[0]));
 			outputStream = new DataOutputStream(socketToRegistry.getOutputStream());
 		} catch(IOException e) {
 			System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
 		}
-		
 		System.out.println("Successful Connection opened");
 		
-		//get message
-		byte[] message = new String("Hello World!").getBytes();
-		Integer messageLength = message.length;
 		
-		outputStream.writeInt(messageLength);
-		outputStream.write(message, 0, messageLength);
+		boolean exit = false;
+		while (!exit) {
 		
+			//get message
+			byte[] message = new String("Hello World!").getBytes();
+			Integer messageLength = message.length;
+			
+			outputStream.writeInt(messageLength);
+			outputStream.write(message, 0, messageLength);
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		//deregistering the node, or exiting it
 		
 		//close the streams
 		outputStream.close();
@@ -90,6 +98,11 @@ public class MessagingNode implements Node {
 	public void onEvent(Event e) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("MessagingNode: '%s'%n", this.getClass().toString());
 	}
 
 }

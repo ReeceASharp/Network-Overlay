@@ -4,24 +4,27 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import cs455.overlay.node.Node;
+
 
 public class TCPServerThread implements Runnable {
 	
 	Integer NUM_POSSIBLE_CONNECTIONS = 3;
 	ServerSocket serverSocket;
 	TCPConnectionsCache cache;
+	Node node;
 	
-	public TCPServerThread() {
-
+	public TCPServerThread(Node node) {
+		this.node = node;
 		cache = new TCPConnectionsCache(3);
 		serverSocket = null;
 	}
 	
-
+	
 	@Override
 	public void run() {
 		//System.out.println("TCPServerThread::run::");
-
+		
 		
 		try {
 			serverSocket = new ServerSocket(0, NUM_POSSIBLE_CONNECTIONS);
@@ -37,15 +40,14 @@ public class TCPServerThread implements Runnable {
 		
 		while (listening) {
 			try {
-				//System.out.println("Blocking");
+				System.out.println("Blocking");
 				Socket clientSocket = serverSocket.accept();
 				System.out.printf("Received Connection: %s, %s%n", clientSocket.getRemoteSocketAddress(), clientSocket.getInetAddress());
 				cache.saveConnection(clientSocket);
 				System.out.println(cache.toString());
 				
 				//spawn a thread to handle that specific connection, 
-				Thread receiver = new Thread(new TCPReceiverThread(clientSocket));
-				receiver.start();
+				new Thread(new TCPReceiverThread(clientSocket)).start();
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
