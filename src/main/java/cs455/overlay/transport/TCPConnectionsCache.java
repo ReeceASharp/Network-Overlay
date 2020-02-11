@@ -1,13 +1,23 @@
 package cs455.overlay.transport;
 
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class TCPConnectionsCache {
-	public ArrayList<String> sockets;
+	public ArrayList<Socket> sockets;
 	
 	public TCPConnectionsCache(int size) {
-		new ArrayList<>(size);
-		// TODO Auto-generated constructor stub
+		sockets = new ArrayList<>(size);
+	}
+	
+	public void saveConnection(Socket receiver) {
+		System.out.println("TCPConnectionsCache::saveConnection");
+		sockets.add(receiver);
+	}
+	
+	@Override
+	public String toString() {
+		return sockets.toString();
 	}
 
 }

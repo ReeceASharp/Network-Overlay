@@ -2,66 +2,60 @@ package cs455.overlay.transport;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+
 public class TCPReceiverThread implements Runnable {
 	
-	int sendTracker;		// # of messages sent
-	int receiveTracker;		// # of messages received
-	TCPConnectionsCache cache;	//holds the socket addresses
-	String SERVER_ADDRESS = "localhost";
-	int PORT = 0;
+	//int sendTracker;		// # of messages sent
+	//int receiveTracker;		// # of messages received
+	//TCPConnectionsCache cache;	//holds the socket addresses
 	
-	public TCPReceiverThread(int port) {
+	private Socket socket;
+	private DataInputStream dataIn;
+	
+	public TCPReceiverThread(Socket socket) throws IOException {
 		//pg 9, 4.1
-		System.out.println("TCPReceiverThread::ctor()");
-		this.sendTracker = 0;
-		this.receiveTracker = 0;
-		this.cache = new TCPConnectionsCache(3);
-		this.PORT = port;
+		System.out.printf("TCPReceiverThread::ctor(), Socket: %s%n", socket.toString());
+		this.socket = socket;
+		dataIn = new DataInputStream(socket.getInputStream());
+		
 	}
 	
 	
 	@Override
 	public void run() {
 		System.out.println("TCPReceiverThread::run::");
+		int dataLength;
 		
-		Socket socket = null;
-		DataInputStream inputStream = null; 
-		boolean listening = true;
-		
-		try {
-			inputStream = new DataInputStream(socket.getInputStream());
-		} catch(IOException e) {
-			System.out.println("Client::main::creating_the_socket:: " + e);
-		}
-		
-		
-		while (listening) {
-			
+		while (socket != null) {
 			try {
-				ServerSocket serverSocket = new ServerSocket(PORT);
-				Socket clientSocket = serverSocket.accept();
+				//should block
+				System.out.println("Reading Int");
+				dataLength = dataIn.readInt();
 				
-				Integer msgLength = 0;
-				msgLength = inputStream.readInt();
-				System.out.println("Received a message length of: " + msgLength);
+				System.out.println("Received a message length of: " + dataLength);
+				
+				
 	
-				byte[] incomingMessage = new byte[msgLength];
-				inputStream.readFully(incomingMessage, 0, msgLength);
+				byte[] incomingMessage = new byte[dataLength];
+				dataIn.readFully(incomingMessage, 0, dataLength);
 				
-				System.out.println("Received Message: " + incomingMessage);
+				
+				System.out.println("Received Message: " + new String(incomingMessage));
+				
 			} catch (SocketException se) {
-				System.out.println(se.getMessage());
+				System.out.println("TCPReceiverThread::run::socketException: " + se.getMessage());
+				break;
 			} catch (IOException ioe) {
-				System.out.println(ioe.getMessage()) ;
+				System.out.println("TCPReceiverThread::run::IOException: " + ioe);
+				break;
 			}
 		}
 		
 		try {
-			inputStream.close();
+			dataIn.close();
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
