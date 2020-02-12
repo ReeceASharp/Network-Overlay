@@ -2,6 +2,7 @@ package cs455.overlay.node;
 
 import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
@@ -14,7 +15,6 @@ public class MessagingNode implements Node {
 	// int sendTracker; // # of messages sent
 	// int receiveTracker; // # of messages received
 	// TCPConnectionsCache cache; //holds the socket addresses
-	// static final Random rng = new Random(); //ID # generator
 	private EventFactory factory;
 
 	private MessagingNode() {
@@ -24,40 +24,21 @@ public class MessagingNode implements Node {
 	public static void main(String[] args) throws IOException {
 
 		// get instance of self to pass a reference into the threads
-		MessagingNode self = new MessagingNode();
-		System.out.println(self);
+		MessagingNode node = new MessagingNode();
+		System.out.println(node);
 
 		// start server to listen for incoming connections
-		//Thread server = new Thread(new TCPServerThread(self));
-		//server.start();
-
-		// Attempting to open a connection with the Registry
-		Socket socketToRegistry = null;
-		DataOutputStream outputStream = null;
-		try {
-			socketToRegistry = new Socket("localhost", Integer.parseInt(args[0]));
-			outputStream = new DataOutputStream(socketToRegistry.getOutputStream());
-		} catch (IOException e) {
-			System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
+		Thread server = new Thread(new TCPServerThread(node));
+		server.start();
+		
+		//start the interactive client
+		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
+		parser.start();
+		
+		if (!sendRegistration("localhost", Integer.parseInt(args[0])) {
+			
+			return;
 		}
-		System.out.println("Successful Connection opened");
-		
-
-		// Send the registry a registration notice
-		EventFactory factory = EventFactory.getInstance();
-		int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
-		byte[] message = null;
-		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
-		dout.writeInt(type);
-		dout.flush();
-		message = byteOutStream.toByteArray();
-		byteOutStream.close();
-		dout.close();
-		
-		
-		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, message));
-		sender.start();
 		
 		/*
 		Event e = factory.createEvent(message);
@@ -78,19 +59,13 @@ public class MessagingNode implements Node {
 
 		// close the streams
 		
-		System.out.println("Closing Streams and socket to Registry now");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		outputStream.close();
-		socketToRegistry.close();
-		//server.interrupt();
-
-		// Thread receiver = new Thread(TCPServerThread());
+		/*
+		 * System.out.println("Closing Streams and socket to Registry now"); try {
+		 * Thread.sleep(2000); } catch (InterruptedException e) { // TODO Auto-generated
+		 * catch block e.printStackTrace(); }
+		 * 
+		 * outputStream.close(); socketToRegistry.close();
+		 */
 
 		// B. Assign random identifiers (between 0-127) to nodes within the system; the
 		// registry also has to
@@ -118,11 +93,58 @@ public class MessagingNode implements Node {
 
 		return;
 	}
+	
+	private static boolean sendRegistration(String host, int port) throws IOException {
+		// Attempting to open a connection with the Registry
+		Socket socketToRegistry = null;
+		//open a socket/connection with the registry
+		socketToRegistry = new Socket(host, port);
+		//failed to open the socket
+		//System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
+		System.out.println("Successful Connection opened");
+
+
+		// Send the registry a registration notice
+		//EventFactory factory = EventFactory.getInstance();
+
+		int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
+		byte[] message = null;
+		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
+		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
+		try {
+			dout.writeInt(type);
+			dout.flush();
+			message = byteOutStream.toByteArray();
+			byteOutStream.close();
+			dout.close();
+		} catch (IOException e) {
+			//failed for some reason
+			e.printStackTrace();
+		}
+		Thread sender;
+		try {
+			sender = new Thread(new TCPSenderThread(socketToRegistry, message));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		sender.start();
+
+		return true;
+	}
+	
+	private void sendDeregistration() {
+		
+	}
+	
+	private void packageMessage(byte[] message) {
+		
+	}
 
 	@Override
 	public void onEvent(Event e) {
 		// TODO Auto-generated method stub
-		System.out.println("MessagingNode::onEvent::");
+		System.out.println("MessagingNode::onEvent:: TODO");
 	}
 
 	@Override
@@ -133,6 +155,11 @@ public class MessagingNode implements Node {
 	@Override
 	public EventFactory getFactory() {
 		return factory;
+	}
+
+	@Override
+	public void onCommand(String command) {
+		
 	}
 
 }

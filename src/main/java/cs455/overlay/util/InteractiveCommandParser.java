@@ -31,32 +31,37 @@ public class InteractiveCommandParser implements Runnable {
 	//differentiate between what the interactiveCommandParser is listing
 	private void parseInput(String input) {
 		if (type == Protocol.REGISTRY)
-			parseMessaging(input);
-		else
 			parseRegistry(input);
-	
-		
-		String[] args = input.split(" ");
-		switch (args[0]) {
-			case "list-messaging-nodes":
-				//listNodes();
-				break;
-			case "setup-overlay":
-				//setupOverlay(args);
-				break;
-			case "list-routing-tables":
-				break;
-			case "start":
-				break;
-			}
+		else if (type == Protocol.MESSAGING)
+			parseMessaging(input);
 	}
 	
 	private void parseMessaging(String input) {
-		
+		String[] args = input.split(" ");
+		switch (args[0]) {
+		case "print-counter-and-diagnostics":
+		case "exit-overlay":
+			System.out.println("Valid Command");
+			node.onCommand(input);
+		default:
+			help();
+		}
 	}
 	
 	private void parseRegistry(String input) {
-		
+		String[] args = input.split(" ");
+		switch (args[0]) {
+			//fall through then attempt to parse
+			case "list-messaging-nodes":
+			case "setup-overlay":
+			case "list-routing-tables":
+			case "start":
+				System.out.println("Valid Command");
+				node.onCommand(input);
+				break;
+			default:
+				help();
+		}
 	}
 	
 	/*
@@ -65,8 +70,10 @@ public class InteractiveCommandParser implements Runnable {
 	private void help() {
 		switch (type) {
 		case Protocol.MESSAGING:
+			System.out.println("parseMessaging::invalid Command");
 			break;
 		case Protocol.REGISTRY:
+			System.out.println("parseRegistry::invalid Command");
 			break;
 		}
 	}
