@@ -1,6 +1,7 @@
 package cs455.overlay.node;
 
 import java.io.*;
+import java.util.Random;
 
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
@@ -10,9 +11,9 @@ import cs455.overlay.wireformats.EventFactory;
 
 public class Registry implements Node {
 	
-	//private Scanner keyboard = new Scanner(System.in);
-	//private Thread parser = new Thread(new InteractiveCommandParser(Consts.REGISTRY, this));
 	//private static StatisticsCollectorAndDisplay statDisplay;
+	static final Random rng = new Random(); //ID # generator
+	
 	private EventFactory factory;
 	
 	public Registry() { 
@@ -27,7 +28,8 @@ public class Registry implements Node {
 		server.start();
 		
 		//start the interactive client
-		InteractiveCommandParser parser = new InteractiveCommandParser(Protocol.REGISTRY, node);
+		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
+		parser.start();
 		
 	}
 
@@ -66,7 +68,7 @@ public class Registry implements Node {
 	
 	//node wants to register with the registry
 	private void nodeRegistration() {
-		
+		System.out.println("Registry::nodeRegistration");
 	}
 	
 	//node wants to deregister
