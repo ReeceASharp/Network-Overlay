@@ -1,7 +1,8 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
-import cs455.overlay.util.Consts;
+import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 
@@ -27,8 +28,8 @@ public class MessagingNode implements Node {
 		System.out.println(self);
 
 		// start server to listen for incoming connections
-		Thread server = new Thread(new TCPServerThread(self));
-		server.start();
+		//Thread server = new Thread(new TCPServerThread(self));
+		//server.start();
 
 		// Attempting to open a connection with the Registry
 		Socket socketToRegistry = null;
@@ -40,48 +41,54 @@ public class MessagingNode implements Node {
 			System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
 		}
 		System.out.println("Successful Connection opened");
+		
 
 		// Send the registry a registration notice
 		EventFactory factory = EventFactory.getInstance();
-		int type = Consts.OVERLAY_NODE_SENDS_REGISTRATION;
-		System.out.printf("Type: %d%n", type);
-		byte[] message;
-		ByteBuffer buf = ByteBuffer.allocate( 4 );
-		buf.putInt(type);
-		message = buf.array();
+		int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
+		byte[] message = null;
+		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
+		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
+		dout.writeInt(type);
+		dout.flush();
+		message = byteOutStream.toByteArray();
+		byteOutStream.close();
+		dout.close();
 		
-		buf.flip();
-		int value = buf.getInt();
-		System.out.println("Value: " + value);
 		
+		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, message));
+		sender.start();
+		
+		/*
 		Event e = factory.createEvent(message);
-		System.out.println("Event Factory Created \' " + e.getType() + "\'");
+		System.out.println("Event Factory Created '" + e.getType() + "'");
 
-		//
+		System.out.println("Sending Data");
+		// get message
+		// byte[] message = new String("Hello World!").getBytes();
 
-		boolean exit = false;
-		while (!exit) {
-			System.out.println("Sending Data");
-			// get message
-			// byte[] message = new String("Hello World!").getBytes();
+		Integer messageLength = message.length;
 
-			Integer messageLength = message.length;
+		outputStream.writeInt(messageLength);
+		outputStream.write(message, 0, messageLength);
+		*/
 
-			outputStream.writeInt(messageLength);
-			outputStream.write(message, 0, messageLength);
-				
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException ee) {
-				ee.printStackTrace();
-			}
-		}
 
 		// deregistering the node, or exiting it
 
 		// close the streams
+		
+		System.out.println("Closing Streams and socket to Registry now");
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		outputStream.close();
 		socketToRegistry.close();
+		//server.interrupt();
 
 		// Thread receiver = new Thread(TCPServerThread());
 

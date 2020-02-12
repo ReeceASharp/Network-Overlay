@@ -1,5 +1,7 @@
 package cs455.overlay.transport;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -37,13 +39,14 @@ public class TCPReceiverThread implements Runnable {
 		while (socket != null) {
 			try {
 				//should block
+				
 				System.out.println("Reading Int");
 				dataLength = dataIn.readInt();
 				
 				System.out.println("Received a message length of: " + dataLength);
 				
 				byte[] incomingMessage = new byte[dataLength];
-				dataIn.readFully(incomingMessage, 0, dataLength);
+				dataIn.readFully(incomingMessage, 0, dataLength);	
 				
 				Event e = node.getFactory().createEvent(incomingMessage);
 				
@@ -51,7 +54,7 @@ public class TCPReceiverThread implements Runnable {
 				//received message, decode
 				node.onEvent(e);
 				
-				System.out.println("Received Message: " + new String(incomingMessage));
+				System.out.printf("Received Message: '%s'%n", new String(incomingMessage));
 				
 			} catch (SocketException se) {
 				System.out.println("TCPReceiverThread::run::socketException: " + se.getMessage());
