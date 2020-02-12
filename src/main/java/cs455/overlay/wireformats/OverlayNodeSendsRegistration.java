@@ -5,14 +5,12 @@ public class OverlayNodeSendsRegistration implements Event {
 
 	@Override
 	public int getType() {
-		// TODO Auto-generated method stub
-		return 0;
+		return Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
 	}
 
 	@Override
 	public byte[] getBytes() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getBytes();
 	}
 
 }

@@ -6,4 +6,5 @@ import cs455.overlay.wireformats.EventFactory;
 public interface Node {
 	public void onEvent(Event e);
 	public EventFactory getFactory();
+	public void onCommand(String command);
 }

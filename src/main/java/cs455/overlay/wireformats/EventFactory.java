@@ -1,5 +1,6 @@
 package cs455.overlay.wireformats;
 
+import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 
 public class EventFactory {
@@ -13,7 +14,10 @@ public class EventFactory {
 	}
 	
 	public Event createEvent(byte[] marshalledBytes) {
+		ByteArrayInputStream bin = new ByteArrayInputStream(marshalledBytes);
 		int value = ByteBuffer.wrap( marshalledBytes ).getInt(); 
+		System.out.printf("EventFactory::createEvent: Value = %d%n", value);
+		
 		switch (value) {
 			case 2:
 				return new OverlayNodeSendsRegistration();

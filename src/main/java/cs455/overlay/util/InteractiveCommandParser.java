@@ -3,6 +3,7 @@ package cs455.overlay.util;
 import java.util.Scanner;
 
 import cs455.overlay.node.Node;
+import cs455.overlay.wireformats.Protocol;
 
 public class InteractiveCommandParser implements Runnable {
 	int type;
@@ -27,7 +28,14 @@ public class InteractiveCommandParser implements Runnable {
 		
 	}
 	
+	//differentiate between what the interactiveCommandParser is listing
 	private void parseInput(String input) {
+		if (type == Protocol.REGISTRY)
+			parseMessaging(input);
+		else
+			parseRegistry(input);
+	
+		
 		String[] args = input.split(" ");
 		switch (args[0]) {
 			case "list-messaging-nodes":
@@ -43,14 +51,22 @@ public class InteractiveCommandParser implements Runnable {
 			}
 	}
 	
+	private void parseMessaging(String input) {
+		
+	}
+	
+	private void parseRegistry(String input) {
+		
+	}
+	
 	/*
 	 * 
 	 */
 	private void help() {
 		switch (type) {
-		case Consts.MESSAGING:
+		case Protocol.MESSAGING:
 			break;
-		case Consts.REGISTRY:
+		case Protocol.REGISTRY:
 			break;
 		}
 	}

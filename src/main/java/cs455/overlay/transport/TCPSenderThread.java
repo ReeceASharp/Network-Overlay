@@ -4,12 +4,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class TCPSender implements Runnable {
+public class TCPSenderThread implements Runnable {
 	private Socket socket;
 	private DataOutputStream dout;
 	private byte[] msg;
 	
-	public TCPSender(Socket socket, byte[] msg) throws IOException {
+	public TCPSenderThread(Socket socket, byte[] msg) throws IOException {
 		this.socket = socket;
 		dout = new DataOutputStream(this.socket.getOutputStream());
 		this.msg = msg;
@@ -30,8 +30,13 @@ public class TCPSender implements Runnable {
 		} catch (IOException e) {
 			System.out.println("TCPSender::run::writing_to_output: " + e);
 		}
-
-		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("TCPSenderThread done");
 	}
 
 }

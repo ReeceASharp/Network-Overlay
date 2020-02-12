@@ -3,7 +3,8 @@ package cs455.overlay.node;
 import java.io.*;
 
 import cs455.overlay.transport.TCPServerThread;
-import cs455.overlay.util.Consts;
+import cs455.overlay.util.InteractiveCommandParser;
+import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 
@@ -19,14 +20,14 @@ public class Registry implements Node {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		System.out.println("Registry::main");
-		
 		Registry node = new Registry();
 		
 		//start the server thread that will listen for clients wanting to connect
 		Thread server = new Thread(new TCPServerThread(node));
 		server.start();
 		
+		//start the interactive client
+		InteractiveCommandParser parser = new InteractiveCommandParser(Protocol.REGISTRY, node);
 		
 	}
 
@@ -34,25 +35,29 @@ public class Registry implements Node {
 	public void onEvent(Event e) {
 		// TODO Auto-generated method stub
 		switch(e.getType()) {
-			case (Consts.OVERLAY_NODE_SENDS_REGISTRATION):
+			case (Protocol.OVERLAY_NODE_SENDS_REGISTRATION):
 				nodeRegistration();
 				break;
-			case (Consts.OVERLAY_NODE_SENDS_DEREGISTRATION):
+			case (Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION):
 				nodeDeRegistration();
 				break;
-			case (Consts.NODE_REPORTS_OVERLAY_SETUP_STATUS):
+			case (Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS):
 				nodeSetupStatus();
 				break;
-			case (Consts.OVERLAY_NODE_REPORTS_TASK_FINISHED):
+			case (Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED):
 				nodeTaskFinished();
 				break;
-			case (Consts.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY):
+			case (Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY):
 				nodeReportTraffic();
 				break;
 			default:
 				System.err.printf("Registry::onEvent::invalid control message: %d%n", e.getType());
 				break;
 		}
+	}
+	
+	public void onCommand(String command) {
+		
 	}
 	
 	public EventFactory getFactory() {
