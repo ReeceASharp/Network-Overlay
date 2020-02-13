@@ -35,7 +35,7 @@ public class TCPServerThread implements Runnable {
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
-		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getLocalSocketAddress(), 
+		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getInetAddress().getHostAddress(), 
 				serverSocket.getLocalPort(), serverSocket.getLocalSocketAddress());
 		/*
 		try {
@@ -48,7 +48,7 @@ public class TCPServerThread implements Runnable {
 		
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
-		node.updateServerInfo(serverSocket.getInetAddress().toString(), serverSocket.getLocalPort());
+		node.updateServerInfo(serverSocket.getInetAddress().getHostAddress(), serverSocket.getLocalPort());
 		
 		boolean listening = true;
 		//listen for new connections to this program
