@@ -128,7 +128,7 @@ public class MessagingNode implements Node {
 		//failed to open the socket
 		//System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
 		System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
-		System.out.printf("Socket IP: %s, Port: %d%n", socketToRegistry.getInetAddress(), socketToRegistry.getLocalPort());
+		System.out.printf("Socket IP: %s, Port: %d%n", socketToRegistry.getInetAddress().getHostAddress(), socketToRegistry.getLocalPort());
 		//construct the message, and get the bytes
 		byte[] message = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		

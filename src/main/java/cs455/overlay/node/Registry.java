@@ -83,7 +83,7 @@ public class Registry implements Node {
 	private void nodeRegistration(Event e) throws IOException {
 		System.out.println("Registry::nodeRegistration");
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
-		System.out.printf("IP: %s, Port: %d", registration.getIP(), registration.getPort());
+		System.out.printf("IP: %s, Port: %d%n", registration.getIP(), registration.getPort());
 		
 		Socket connection = new Socket(registration.getIP(), registration.getPort());
 		registration.getIP();
