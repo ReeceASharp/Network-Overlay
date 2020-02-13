@@ -1,6 +1,8 @@
 package cs455.overlay.node;
 
 import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -9,12 +11,13 @@ import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
+import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 
 public class Registry implements Node {
 	
 	//private static StatisticsCollectorAndDisplay statDisplay;
 	static final Random rng = new Random(); //ID # generator
-	private ArrayList<Node> nodeList;
+	
 	
 	private EventFactory factory;
 	
@@ -24,7 +27,6 @@ public class Registry implements Node {
 	
 	public Registry() { 
 		factory = EventFactory.getInstance();
-		nodeList = new ArrayList<Node>();
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -44,7 +46,12 @@ public class Registry implements Node {
 	public void onEvent(Event e) {
 		switch(e.getType()) {
 			case (Protocol.OVERLAY_NODE_SENDS_REGISTRATION):
-				nodeRegistration();
+			try {
+				nodeRegistration(e);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 				break;
 			case (Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION):
 				nodeDeRegistration();
@@ -73,9 +80,17 @@ public class Registry implements Node {
 	}
 	
 	//node wants to register with the registry
-	private void nodeRegistration() {
+	private void nodeRegistration(Event e) throws IOException {
 		System.out.println("Registry::nodeRegistration");
+		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
+		System.out.printf("IP: %s, Port: %d", registration.getIP(), registration.getPort());
 		
+		Socket connection = new Socket(registration.getIP(), registration.getPort());
+		registration.getIP();
+		
+		
+		
+		//respond with a message
 	}
 	
 	//node wants to deregister

@@ -6,8 +6,8 @@ import java.util.ArrayList;
 public class TCPConnectionsCache {
 	private ArrayList<Socket> sockets;
 	
-	public TCPConnectionsCache(int size) {
-		sockets = new ArrayList<>(size);
+	public TCPConnectionsCache() {
+		sockets = new ArrayList<>();
 	}
 	
 	public void saveConnection(Socket socket) {

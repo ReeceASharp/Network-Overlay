@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
@@ -9,20 +10,24 @@ import cs455.overlay.wireformats.EventFactory;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
 public class MessagingNode implements Node {
 	// int sendTracker; // # of messages sent
 	// int receiveTracker; // # of messages received
-	// TCPConnectionsCache cache; //holds the socket addresses
+	TCPConnectionsCache cache; //holds the socket addresses
 	private EventFactory factory;
 	
 	private String serverIP;
 	private int serverPort;
+	
+	//This may be helpful to implement so it can check the IP address? and the socket is saved?
+	//private Socket socketToRegistry
 
 	private MessagingNode() {
 		factory = EventFactory.getInstance();
+		cache = new TCPConnectionsCache();
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -46,7 +51,7 @@ public class MessagingNode implements Node {
 		
 		
 		//send registration to registry
-		if (!sendRegistration(node, "localhost", Integer.parseInt(args[0])))
+		if (!sendRegistration(node, "127.0.0.1", Integer.parseInt(args[0])))
 			return;
 		
 		
@@ -119,10 +124,11 @@ public class MessagingNode implements Node {
 		Socket socketToRegistry = null;
 		//open a socket/connection with the registry
 		socketToRegistry = new Socket(host, port);
+		
 		//failed to open the socket
 		//System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
-		System.out.println("Successful Connection opened");
-
+		System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
+		System.out.printf("Socket IP: %s, Port: %d%n", socketToRegistry.getInetAddress(), socketToRegistry.getLocalPort());
 		//construct the message, and get the bytes
 		byte[] message = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		
@@ -133,14 +139,27 @@ public class MessagingNode implements Node {
 		return true;
 	}
 	
+	private void sendMessage() {
+		System.out.println("MessagingNode::SendMessage::Successful Connection opened");
+	}
 	
-	private void sendDeregistration() {
+	
+	private boolean sendDeregistration(Node node, String host, int port) throws IOException {
+		
+		Socket connection = new Socket(host, port);
+		System.out.println("MessagingNode::SendDeRegistration::Successful Connection opened");
+		byte[] message = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
+		
+
+		
+		//create a thread with the Registry socket, and the message going to it
+		Thread sender = new Thread(new TCPSenderThread(connection, message));
+		sender.start();
+
+		return true;
 		
 	}
 	
-	private void packageMessage(byte[] message) {
-		
-	}
 
 	@Override
 	public void onEvent(Event e) {

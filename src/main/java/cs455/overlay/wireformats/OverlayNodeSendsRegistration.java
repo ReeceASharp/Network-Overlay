@@ -8,8 +8,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import cs455.overlay.node.Node;
-
 public class OverlayNodeSendsRegistration implements Event {
 	static final int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
 	
@@ -84,8 +82,8 @@ public class OverlayNodeSendsRegistration implements Event {
 			System.out.printf("ip: '%s', Port: %d, ipBytes Length: '%d'%n", ip, port, ipBytes.length);
 
 
-			
 			message = byteOutStream.toByteArray();
+			
 			byteOutStream.close();
 			dout.close();
 		} catch (IOException e) {
@@ -95,5 +93,12 @@ public class OverlayNodeSendsRegistration implements Event {
 		
 		return message;
 	}
+	
+	public String getIP() {
+		return ip;
+	}
 
+	public int getPort() {
+		return port;
+	}
 }
