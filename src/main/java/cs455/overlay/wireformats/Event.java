@@ -4,5 +4,5 @@ import cs455.overlay.node.Node;
 
 public interface Event {
 	public int getType();
-	public byte[] getBytes(Node node);
+	public byte[] getBytes();
 }

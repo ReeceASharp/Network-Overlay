@@ -11,7 +11,7 @@ public class NodeReportsOverlaySetupStatus implements Event {
 	}
 
 	@Override
-	public byte[] getBytes(Node node) {
+	public byte[] getBytes() {
 		// TODO Auto-generated method stub
 		return null;
 	}

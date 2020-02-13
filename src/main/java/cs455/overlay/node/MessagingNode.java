@@ -17,17 +17,21 @@ public class MessagingNode implements Node {
 	// int receiveTracker; // # of messages received
 	// TCPConnectionsCache cache; //holds the socket addresses
 	private EventFactory factory;
+	
+	private String serverIP;
+	private int serverPort;
 
 	private MessagingNode() {
 		factory = EventFactory.getInstance();
 	}
 
 	public static void main(String[] args) throws IOException {
+		//TODO: get the host parameter from the arguments, along with the port
+		
 
 		// *** init
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
-		System.out.println(node);
 
 		// start server to listen for incoming connections
 		Thread server = new Thread(new TCPServerThread(node));
@@ -39,8 +43,10 @@ public class MessagingNode implements Node {
 		
 		// *** init
 		
+		
+		
 		//send registration to registry
-		if (!sendRegistration("localhost", Integer.parseInt(args[0])))
+		if (!sendRegistration(node, "localhost", Integer.parseInt(args[0])))
 			return;
 		
 		
@@ -108,7 +114,7 @@ public class MessagingNode implements Node {
 		return;
 	}
 	
-	private static boolean sendRegistration(String host, int port) throws IOException {
+	private static boolean sendRegistration(Node node, String host, int port) throws IOException {
 		// Attempting to open a connection with the Registry
 		Socket socketToRegistry = null;
 		//open a socket/connection with the registry
@@ -117,15 +123,16 @@ public class MessagingNode implements Node {
 		//System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
 		System.out.println("Successful Connection opened");
 
-		int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
-		//byte[] message = OverlayNodeSendsRegistration;
-		byte[] message = "Hello".getBytes();
+		//construct the message, and get the bytes
+		byte[] message = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		
+		//create a thread with the Registry socket, and the message going to it
 		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, message));
 		sender.start();
 
 		return true;
 	}
+	
 	
 	private void sendDeregistration() {
 		
@@ -154,6 +161,29 @@ public class MessagingNode implements Node {
 	@Override
 	public void onCommand(String command) {
 		
+		
 	}
+	
+	/*
+	 * Necessary for the ability to send the registration to the Registry, because this
+	 * is done dynamically in the thread, it needs to be passed back up through the node ref
+	 */
+	@Override
+	public void updateServerInfo(String ip, int port) {
+		serverIP = ip;
+		serverPort = port;
+	}
+	
+	//TODO: may need to be synchronized, but because of the order this may not need to happen
+	@Override
+	public String getServerIP() {
+		return serverIP;
+	}
+	
+	@Override
+	public int getServerPort() {
+		return serverPort;
+	}
+	
 
 }
