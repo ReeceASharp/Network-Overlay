@@ -1,8 +1,10 @@
 package cs455.overlay.transport;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import cs455.overlay.node.Node;
 
@@ -15,7 +17,7 @@ public class TCPServerThread implements Runnable {
 	
 	public TCPServerThread(Node node) {
 		this.node = node;
-		cache = new TCPConnectionsCache(3);
+		cache = new TCPConnectionsCache();
 		serverSocket = null;
 	}
 	
@@ -33,8 +35,17 @@ public class TCPServerThread implements Runnable {
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
-		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getInetAddress(), 
+		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getLocalSocketAddress(), 
 				serverSocket.getLocalPort(), serverSocket.getLocalSocketAddress());
+		/*
+		try {
+			//System.out.println(InetAddress.getLocalHost().getHostAddress());
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		*/
+		
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
 		node.updateServerInfo(serverSocket.getInetAddress().toString(), serverSocket.getLocalPort());

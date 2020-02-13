@@ -1,7 +1,5 @@
 package cs455.overlay.wireformats;
 
-import cs455.overlay.node.Node;
-
 public class OverlayNodeSendsDeregistration implements Event {
 
 	@Override
