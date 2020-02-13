@@ -18,6 +18,8 @@ public class Registry implements Node {
 	//private static StatisticsCollectorAndDisplay statDisplay;
 	static final Random rng = new Random(); //ID # generator
 	
+	NodeList nodeList;
+	
 	
 	private EventFactory factory;
 	
@@ -27,6 +29,7 @@ public class Registry implements Node {
 	
 	public Registry() { 
 		factory = EventFactory.getInstance();
+		nodeList = new NodeList();
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -86,11 +89,11 @@ public class Registry implements Node {
 		System.out.printf("IP: %s, Port: %d%n", registration.getIP(), registration.getPort());
 		
 		Socket connection = new Socket(registration.getIP(), registration.getPort());
-		registration.getIP();
 		
 		
 		
 		//respond with a message
+		
 	}
 	
 	//node wants to deregister
