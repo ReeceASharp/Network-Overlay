@@ -32,7 +32,7 @@ public class OverlayNodeSendsRegistration implements Event {
 		
 		//retrieve IP address
 		int ipLength = din.readInt();
-		System.out.printf("IP Length: '%d'%n", ipLength);
+		//System.out.printf("IP Length: '%d'%n", ipLength);
 		
 		byte[] ipBytes = new byte[ipLength];
 		din.readFully(ipBytes);
@@ -40,13 +40,13 @@ public class OverlayNodeSendsRegistration implements Event {
 		
 		//retrieve port
 		port = din.readInt();
-		System.out.printf("IP: '%s', Port: '%d'%n", ip, port);
+		//System.out.printf("IP: '%s', Port: '%d'%n", ip, port);
 		
 		//close wrapper streams
-		System.out.println("Closing inputStream");
+		System.out.println("OverlayNodeSendsRegistration::ctor::Closing inputStream");
 		baInputStream.close();
 		
-		System.out.println("Closing datainputStream");
+		System.out.println("OverlayNodeSendsRegistration::ctor::Closing datainputStream");
 		din.close();		
 		
 	}
