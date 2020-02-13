@@ -8,8 +8,7 @@ import cs455.overlay.node.Node;
 
 
 public class TCPServerThread implements Runnable {
-	
-	Integer NUM_POSSIBLE_CONNECTIONS = 3;
+
 	ServerSocket serverSocket;
 	TCPConnectionsCache cache;
 	Node node;
@@ -25,15 +24,20 @@ public class TCPServerThread implements Runnable {
 	public void run() {
 		//System.out.println("TCPServerThread::run::");
 		
+		//Find an open port and allow X connections
+		//the number of connections is at most log base 2 of the registry's max nodes recorded
+		//this is because each connection will be 
 		try {
-			serverSocket = new ServerSocket(0, NUM_POSSIBLE_CONNECTIONS);
+			serverSocket = new ServerSocket(0);
 			
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
 		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getInetAddress(), 
 				serverSocket.getLocalPort(), serverSocket.getLocalSocketAddress());
-		//System.out.printf("TCPServer: Port=%d%n", serverSocket.getLocalPort());
+		
+		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
+		node.updateServerInfo(serverSocket.getInetAddress().toString(), serverSocket.getLocalPort());
 		
 		boolean listening = true;
 		//listen for new connections to this program
@@ -43,7 +47,7 @@ public class TCPServerThread implements Runnable {
 				System.out.println("Blocking");
 				Socket clientSocket = serverSocket.accept();
 				System.out.printf("Received Connection: %s, %s%n", clientSocket.getRemoteSocketAddress(), clientSocket.getInetAddress());
-				cache.saveConnection(clientSocket);
+				//cache.saveConnection(clientSocket);
 				System.out.println(cache.toString());
 				
 				//spawn a thread to handle that specific connection, 

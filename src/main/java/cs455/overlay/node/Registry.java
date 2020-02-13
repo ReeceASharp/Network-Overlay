@@ -18,6 +18,10 @@ public class Registry implements Node {
 	
 	private EventFactory factory;
 	
+	private String serverIP;
+	private int serverPort;
+	
+	
 	public Registry() { 
 		factory = EventFactory.getInstance();
 		nodeList = new ArrayList<Node>();
@@ -38,7 +42,6 @@ public class Registry implements Node {
 
 	@Override
 	public void onEvent(Event e) {
-		// TODO Auto-generated method stub
 		switch(e.getType()) {
 			case (Protocol.OVERLAY_NODE_SENDS_REGISTRATION):
 				nodeRegistration();
@@ -72,6 +75,7 @@ public class Registry implements Node {
 	//node wants to register with the registry
 	private void nodeRegistration() {
 		System.out.println("Registry::nodeRegistration");
+		
 	}
 	
 	//node wants to deregister
@@ -99,5 +103,22 @@ public class Registry implements Node {
 	
 	private void listNodes() {
 		
+	}
+
+	//TODO: may need to synchronize this, as its setters and getters may be accessed simultaneously
+	@Override
+	public void updateServerInfo(String ip, int port) {
+		serverIP = ip;
+		serverPort = port;
+	}
+
+	@Override
+	public String getServerIP() {
+		return serverIP;
+	}
+
+	@Override
+	public int getServerPort() {
+		return serverPort;
 	}
 }

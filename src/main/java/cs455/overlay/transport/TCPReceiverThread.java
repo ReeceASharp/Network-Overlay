@@ -54,13 +54,14 @@ public class TCPReceiverThread implements Runnable {
 				//received message, decode
 				node.onEvent(e);
 				
-				System.out.printf("Received Message: '%s'%n", new String(incomingMessage));
+				//System.out.printf("Received Message: '%s'%n", new String(incomingMessage));
 				
 			} catch (SocketException se) {
 				System.out.println("TCPReceiverThread::run::socketException: " + se.getMessage());
 				break;
 			} catch (IOException ioe) {
-				System.out.println("TCPReceiverThread::run::IOException: " + ioe);
+				System.out.printf("TCPReceiverThread::run::IOException: '%s' '%s'%n", ioe.toString(), ioe.getMessage());
+				ioe.printStackTrace();
 				break;
 			}
 		}
