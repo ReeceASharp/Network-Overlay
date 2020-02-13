@@ -39,11 +39,11 @@ public class TCPReceiverThread implements Runnable {
 		while (socket != null) {
 			try {
 				//should block
+				//byte messageType = dataIn.readByte();
 				
-				System.out.println("Reading Int");
 				dataLength = dataIn.readInt();
 				
-				System.out.println("Received a message length of: " + dataLength);
+				//System.out.println("Received a message length of: " + dataLength);
 				
 				byte[] incomingMessage = new byte[dataLength];
 				dataIn.readFully(incomingMessage, 0, dataLength);	

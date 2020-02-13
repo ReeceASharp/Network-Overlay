@@ -6,6 +6,7 @@ import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
+import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 
 import java.io.*;
 import java.net.Socket;
@@ -23,6 +24,7 @@ public class MessagingNode implements Node {
 
 	public static void main(String[] args) throws IOException {
 
+		// *** init
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
 		System.out.println(node);
@@ -35,10 +37,22 @@ public class MessagingNode implements Node {
 		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
 		parser.start();
 		
-		if (!sendRegistration("localhost", Integer.parseInt(args[0])) {
-			
+		// *** init
+		
+		//send registration to registry
+		if (!sendRegistration("localhost", Integer.parseInt(args[0])))
 			return;
-		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		/*
 		Event e = factory.createEvent(message);
@@ -103,31 +117,11 @@ public class MessagingNode implements Node {
 		//System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
 		System.out.println("Successful Connection opened");
 
-
-		// Send the registry a registration notice
-		//EventFactory factory = EventFactory.getInstance();
-
 		int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
-		byte[] message = null;
-		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
-		try {
-			dout.writeInt(type);
-			dout.flush();
-			message = byteOutStream.toByteArray();
-			byteOutStream.close();
-			dout.close();
-		} catch (IOException e) {
-			//failed for some reason
-			e.printStackTrace();
-		}
-		Thread sender;
-		try {
-			sender = new Thread(new TCPSenderThread(socketToRegistry, message));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//byte[] message = OverlayNodeSendsRegistration;
+		byte[] message = "Hello".getBytes();
+		
+		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, message));
 		sender.start();
 
 		return true;

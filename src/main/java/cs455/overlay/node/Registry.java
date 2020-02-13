@@ -1,6 +1,7 @@
 package cs455.overlay.node;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Random;
 
 import cs455.overlay.transport.TCPServerThread;
@@ -13,11 +14,13 @@ public class Registry implements Node {
 	
 	//private static StatisticsCollectorAndDisplay statDisplay;
 	static final Random rng = new Random(); //ID # generator
+	private ArrayList<Node> nodeList;
 	
 	private EventFactory factory;
 	
 	public Registry() { 
 		factory = EventFactory.getInstance();
+		nodeList = new ArrayList<Node>();
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -59,7 +62,7 @@ public class Registry implements Node {
 	}
 	
 	public void onCommand(String command) {
-		
+		System.out.println("Registry::onCommand");
 	}
 	
 	public EventFactory getFactory() {
