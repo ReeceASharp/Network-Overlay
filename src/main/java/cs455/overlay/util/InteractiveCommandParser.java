@@ -18,7 +18,7 @@ public class InteractiveCommandParser implements Runnable {
 	
 	@Override
 	public void run() {
-		System.out.println("InteractiveCommandParser::run");
+		//System.out.println("InteractiveCommandParser::run");
 		while(true) {
 			System.out.print("Input: ");
 			String command = input.nextLine();

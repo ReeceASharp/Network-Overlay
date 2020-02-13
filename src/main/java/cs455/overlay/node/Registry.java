@@ -43,18 +43,19 @@ public class Registry implements Node {
 		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
 		parser.start();
 		
+		//System.out.println("Registry::main::exiting");
 	}
 
 	@Override
 	public void onEvent(Event e) {
 		switch(e.getType()) {
 			case (Protocol.OVERLAY_NODE_SENDS_REGISTRATION):
-			try {
-				nodeRegistration(e);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+				try {
+					nodeRegistration(e);
+				} catch (IOException e1) {
+					System.out.printf("Failed nodeRegistration: '%s'%n", e.toString());
+					e1.printStackTrace();
+				}
 				break;
 			case (Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION):
 				nodeDeRegistration();
@@ -90,7 +91,10 @@ public class Registry implements Node {
 		
 		Socket connection = new Socket(registration.getIP(), registration.getPort());
 		
+		nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), 43));
 		
+		//connection.
+
 		
 		//respond with a message
 		

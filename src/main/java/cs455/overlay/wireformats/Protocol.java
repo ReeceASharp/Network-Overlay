@@ -19,4 +19,6 @@ public final class Protocol {
 	public static final int REGISTRY_REQUESTS_TRAFFIC_SUMMARY = 11;
 	public static final int OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY = 12;
 	
+	public static final int TEST_EVENT = 30;
+	
 }

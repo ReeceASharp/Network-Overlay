@@ -57,7 +57,7 @@ public class TCPServerThread implements Runnable {
 		
 		while (listening) {
 			try {
-				System.out.println("Blocking");
+				System.out.println(serverSocket.toString() + " Blocking");
 				Socket clientSocket = serverSocket.accept();
 				System.out.printf("Received Connection: %s, %s%n", clientSocket.getRemoteSocketAddress(), clientSocket.getInetAddress());
 				//cache.saveConnection(clientSocket);
