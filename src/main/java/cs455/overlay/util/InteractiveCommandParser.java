@@ -24,8 +24,6 @@ public class InteractiveCommandParser implements Runnable {
 			String command = input.nextLine();
 			parseInput(command);
 		}
-		
-		
 	}
 	
 	//differentiate between what the interactiveCommandParser is listing
@@ -71,9 +69,11 @@ public class InteractiveCommandParser implements Runnable {
 		switch (type) {
 		case Protocol.MESSAGING:
 			System.out.println("parseMessaging::invalid Command");
+			//TODO: update command list to be a string[]
 			break;
 		case Protocol.REGISTRY:
 			System.out.println("parseRegistry::invalid Command");
+			//TODO: update command list to be a string[]
 			break;
 		}
 	}
