@@ -1,5 +1,7 @@
 package cs455.overlay.wireformats;
 
+import cs455.overlay.node.Node;
+
 public class RegistrySendsNodeManifest implements Event {
 
 	@Override
@@ -9,7 +11,7 @@ public class RegistrySendsNodeManifest implements Event {
 	}
 
 	@Override
-	public byte[] getBytes() {
+	public byte[] getBytes(Node node) {
 		// TODO Auto-generated method stub
 		return null;
 	}
