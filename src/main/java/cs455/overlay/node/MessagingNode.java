@@ -33,6 +33,7 @@ public class MessagingNode implements Node {
 		cache = new TCPConnectionsCache();
 	}
 
+	
 	public static void main(String[] args) throws IOException {
 		//TODO: get the host parameter from the arguments, along with the port
 		//String host = args[0];
@@ -53,7 +54,7 @@ public class MessagingNode implements Node {
 		
 		
 		//send registration to registry
-		if (!sendRegistration(node, "127.0.0.1", Integer.parseInt(args[0])))
+		if (!sendRegistration(node, "localhost", Integer.parseInt(args[0])))
 			return;
 
 		return;
