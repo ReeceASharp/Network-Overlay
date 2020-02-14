@@ -6,9 +6,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
@@ -49,7 +51,7 @@ public class Registry implements Node {
 	@Override
 	public void onEvent(Event e, Socket socket) {
 		switch(e.getType()) {
-			case (Protocol.OVERLAY_NODE_SENDS_REGISTRATION):
+			case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
 				try {
 					nodeRegistration(e, socket);
 				} catch (IOException e1) {
@@ -57,16 +59,16 @@ public class Registry implements Node {
 					e1.printStackTrace();
 				}
 				break;
-			case (Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION):
+			case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
 				nodeDeRegistration();
 				break;
-			case (Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS):
+			case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
 				nodeSetupStatus();
 				break;
-			case (Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED):
+			case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
 				nodeTaskFinished();
 				break;
-			case (Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY):
+			case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
 				nodeReportTraffic();
 				break;
 			default:
@@ -100,7 +102,7 @@ public class Registry implements Node {
 	//node wants to register with the registry
 	private void nodeRegistration(Event e, Socket socket) throws IOException {
 		//check if node already exists
-		String message;
+		String message = "rer";
 		
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
 		System.out.printf("Registry::nodeRegistration::IP: %s, Port: %d%n", registration.getIP(), registration.getPort());
@@ -118,9 +120,24 @@ public class Registry implements Node {
 		System.out.println(nodeList);
 		
 		//respond with a message
+		byte[] marshalledBytes = new RegistryReportsRegistrationStatus(status, message).getBytes();
+		
+		//TODO: possibly change to anonymous thread
+		System.out.println("Sending to: " + socket);
+		Thread sender = new Thread(new TCPSenderThread(socket, marshalledBytes));
+		sender.start();
+		
+		
+		sendMessage(socket);
 		
 	}
 	
+	
+	
+	private void sendMessage(Socket socket) {
+		
+	}
+
 	private int checkNode(Event e, Socket socket) {
 		//check that the node data matches the socket connection it came through
 		

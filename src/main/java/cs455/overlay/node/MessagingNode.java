@@ -1,10 +1,12 @@
 package cs455.overlay.node;
 
 import cs455.overlay.transport.TCPConnectionsCache;
+import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.EventFactory;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
@@ -21,6 +23,7 @@ public class MessagingNode implements Node {
 	
 	private String serverIP;
 	private int serverPort;
+	private int id;
 	
 	//This may be helpful to implement so it can check the IP address? and the socket is saved?
 	//private Socket socketToRegistry
@@ -60,17 +63,26 @@ public class MessagingNode implements Node {
 		// Attempting to open a connection with the Registry
 		Socket socketToRegistry = null;
 		//open a socket/connection with the registry
+		
+		System.out.println("InetAddress.getLocalHost(): " + InetAddress.getLoopbackAddress());
+
+		//socketToRegistry = new Socket(host, port, InetAddress.getLoopbackAddress(), node.getServerPort());
 		socketToRegistry = new Socket(host, port);
 		
-		
 		System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
-		System.out.printf("Socket IP: %s, Port: %d%n", socketToRegistry.getInetAddress().getHostAddress(), socketToRegistry.getLocalPort());
+		System.out.printf("MessagingNode::SendRegistration::%s%n", socketToRegistry);
 		//construct the message, and get the bytes
-		byte[] message = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
+		byte[] marshalledBytes = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		
-		//create a thread with the Registry socket, and the message going to it
-		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, message));
+		//create a listener on this socket for the response from the Registry
+		Thread receiver = new Thread(new TCPReceiverThread(socketToRegistry, node));
+		receiver.start();
+
+		//Send the message to the Registry to attempt registration
+		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, marshalledBytes));
 		sender.start();
+		
+
 
 		return true;
 	}
@@ -100,6 +112,39 @@ public class MessagingNode implements Node {
 	@Override
 	public void onEvent(Event e, Socket socket) {
 		System.out.println("MessagingNode::onEvent:: TODO");
+		
+		switch(e.getType()) {
+		case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:
+			registrationStatus(e);
+			break;
+		case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:
+			break;
+		case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
+			break;
+		case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
+			break;
+		case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
+			break;
+		default:
+			System.out.printf("Invalid Event type received: '%d'%n");
+		}
+
+	}
+
+
+
+	private void registrationStatus(Event e) {
+		System.out.println("RegistrationStatus");
+		
+		RegistryReportsRegistrationStatus r = (RegistryReportsRegistrationStatus) e;
+		
+		int status = r.getStatus();
+		//if (status < 0)
+		//	return;
+		id = status;
+		
+		System.out.printf("Message: %s, ID: %d%n", r.getInfo(), id);
+		
 	}
 
 	@Override
@@ -116,7 +161,15 @@ public class MessagingNode implements Node {
 	public void onCommand(String[] command) {
 		System.out.printf("MessagingNode::onCommand:: '%s'%n", command.toString());
 		
-
+		switch (command[0]) {
+		case "print-counter-and-diagnostics":
+			//TODO
+			break;
+		case "exit-overlay":
+			break;
+		default:
+			System.out.println("Should never reach this");
+		}
 		
 	}
 	

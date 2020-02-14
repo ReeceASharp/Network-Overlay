@@ -39,14 +39,12 @@ public class InteractiveCommandParser implements Runnable {
 	
 	private void parseMessaging(String input) {
 		String[] args = input.split(" ");
-		switch (args[0]) {
-			case "print-counter-and-diagnostics":
-				break;
-			case "exit-overlay":
-				break;
-			default:
-				System.out.println("Should never reach this");
-			}
+		
+		
+		if (Arrays.asList(Commands.MESSAGING_COMMANDS).contains(args[0]))
+			node.onCommand(args);
+		else
+			help();
 	}
 	
 	private void parseRegistry(String input) {
