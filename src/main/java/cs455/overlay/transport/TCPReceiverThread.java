@@ -21,7 +21,7 @@ public class TCPReceiverThread implements Runnable {
 	
 	public TCPReceiverThread(Socket socket, Node node) throws IOException {
 		//pg 9, 4.1
-		System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: '%s'%n", socket.toString());
+		System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: '%s', IP: %s%n", socket.toString(), node.getServerIP());
 		this.socket = socket;
 		dataIn = new DataInputStream(socket.getInputStream());
 		this.node = node;

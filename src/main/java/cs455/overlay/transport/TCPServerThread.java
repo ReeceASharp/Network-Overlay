@@ -1,6 +1,7 @@
 package cs455.overlay.transport;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -12,6 +13,8 @@ public class TCPServerThread implements Runnable {
 	ServerSocket serverSocket;
 	TCPConnectionsCache cache;
 	Node node;
+	InetAddress addr;
+	
 	//private volatile boolean listening;
 	
 	
@@ -19,7 +22,6 @@ public class TCPServerThread implements Runnable {
 		this.node = node;
 		cache = new TCPConnectionsCache();
 		serverSocket = null;
-		//listening = true;
 	}
 	
 	
@@ -30,11 +32,12 @@ public class TCPServerThread implements Runnable {
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
-		System.out.printf("TCPServer on %s%n", serverSocket);
+		
+		
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
-		node.updateServerInfo(serverSocket.getInetAddress().getHostAddress(), serverSocket.getLocalPort());
-		
+		node.updateServerInfo(serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
+		System.out.printf("TCPServer on %s: IP:'%s'%n", serverSocket, node.getServerIP());
 		//listen for new connections to this program
 		//TODO: look at interrupting from above
 		
@@ -42,7 +45,11 @@ public class TCPServerThread implements Runnable {
 			while (true) {
 					System.out.println("TCPServerThread::run::blocking");
 					Socket clientSocket = serverSocket.accept();
+					String value = clientSocket.getLocalAddress().getHostAddress();
+					System.out.println("VALUE: " + value);
+					
 					System.out.printf("Received Connection: %s%n", clientSocket);
+					
 					cache.saveConnection(clientSocket);
 					System.out.println(cache.toString());
 					
