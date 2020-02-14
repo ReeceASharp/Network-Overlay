@@ -18,9 +18,7 @@ public class TCPSenderThread implements Runnable {
 	@Override
 	public void run() {
 		//using the established pipeline to send information
-		System.out.println("TCPSender::run");
-		
-		//Will implement Event system to package the data more effectively
+		System.out.println("TCPSender::run::sending_to:" + socket);
 		
 		int msgLength = msg.length;
 		try {

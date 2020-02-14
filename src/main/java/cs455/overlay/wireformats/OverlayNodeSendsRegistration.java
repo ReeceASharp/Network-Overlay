@@ -79,7 +79,7 @@ public class OverlayNodeSendsRegistration implements Event {
 			//ensure all is written before the buffer is converted to a byte array
 			dout.flush();
 			
-			System.out.printf("ip: '%s', Port: %d, ipBytes Length: '%d'%n", ip, port, ipBytes.length);
+			//System.out.printf("ip: '%s', Port: %d, ipBytes Length: '%d'%n", ip, port, ipBytes.length);
 
 
 			message = byteOutStream.toByteArray();
