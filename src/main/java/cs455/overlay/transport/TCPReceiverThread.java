@@ -21,7 +21,7 @@ public class TCPReceiverThread implements Runnable {
 	
 	public TCPReceiverThread(Socket socket, Node node) throws IOException {
 		//pg 9, 4.1
-		System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: %s%n", socket.toString());
+		System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: '%s'%n", socket.toString());
 		this.socket = socket;
 		dataIn = new DataInputStream(socket.getInputStream());
 		this.node = node;
@@ -50,7 +50,7 @@ public class TCPReceiverThread implements Runnable {
 				
 				
 				//received message, decode
-				node.onEvent(e);
+				node.onEvent(e, socket);
 				
 				//System.out.printf("Received Message: '%s'%n", new String(incomingMessage));
 				
@@ -59,6 +59,7 @@ public class TCPReceiverThread implements Runnable {
 				break;
 			} catch (IOException ioe) {
 				System.out.printf("TCPReceiverThread::run::IOException: '%s' '%s'%n", ioe.toString(), ioe.getMessage());
+				//TODO: at this point the thread should call the node to remove this node from its registry
 				ioe.printStackTrace();
 				break;
 			}

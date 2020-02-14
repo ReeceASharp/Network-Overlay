@@ -1,5 +1,5 @@
 package cs455.overlay.transport;
 
-public abstract class TCPConnection {
+public class TCPConnection {
 	
 }

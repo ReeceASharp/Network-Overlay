@@ -11,7 +11,7 @@ public class TCPConnectionsCache {
 	}
 	
 	public void saveConnection(Socket socket) {
-		System.out.println("TCPConnectionsCache::saveConnection");
+		System.out.println("TCPConnectionsCache::saveConnection::" + socket.toString());
 		sockets.add(socket);
 	}
 	
@@ -25,7 +25,11 @@ public class TCPConnectionsCache {
 	
 	@Override
 	public String toString() {
-		return sockets.toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append("TCPConnectionsCache: \n");
+		sb.append(sockets.toString());
+		sb.append("\n***\n");
+		return sb.toString();
 	}
 
 }
