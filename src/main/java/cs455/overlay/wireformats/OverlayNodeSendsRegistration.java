@@ -43,10 +43,10 @@ public class OverlayNodeSendsRegistration implements Event {
 		//System.out.printf("IP: '%s', Port: '%d'%n", ip, port);
 		
 		//close wrapper streams
-		System.out.println("OverlayNodeSendsRegistration::ctor::Closing inputStream");
+		//System.out.println("OverlayNodeSendsRegistration::ctor::Closing inputStream");
 		baInputStream.close();
 		
-		System.out.println("OverlayNodeSendsRegistration::ctor::Closing datainputStream");
+		//System.out.println("OverlayNodeSendsRegistration::ctor::Closing datainputStream");
 		din.close();		
 		
 	}

@@ -9,6 +9,8 @@ public class OverlayNodeSendsDeregistration implements Event {
 
 	@Override
 	public byte[] getBytes() {
+		
+		
 		// TODO Auto-generated method stub
 		return null;
 	}

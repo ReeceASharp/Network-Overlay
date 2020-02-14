@@ -1,11 +1,14 @@
 package cs455.overlay.util;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 import cs455.overlay.node.Node;
 import cs455.overlay.wireformats.Protocol;
 
 public class InteractiveCommandParser implements Runnable {
+	
+	
 	int type;
 	Node node;
 	
@@ -20,7 +23,7 @@ public class InteractiveCommandParser implements Runnable {
 	public void run() {
 		//System.out.println("InteractiveCommandParser::run");
 		while(true) {
-			System.out.print("Input: ");
+			//System.out.print("Input: ");
 			String command = input.nextLine();
 			parseInput(command);
 		}
@@ -37,29 +40,23 @@ public class InteractiveCommandParser implements Runnable {
 	private void parseMessaging(String input) {
 		String[] args = input.split(" ");
 		switch (args[0]) {
-		case "print-counter-and-diagnostics":
-		case "exit-overlay":
-			System.out.println("Valid Command");
-			node.onCommand(input);
-		default:
-			help();
-		}
+			case "print-counter-and-diagnostics":
+				break;
+			case "exit-overlay":
+				break;
+			default:
+				System.out.println("Should never reach this");
+			}
 	}
 	
 	private void parseRegistry(String input) {
 		String[] args = input.split(" ");
-		switch (args[0]) {
-			//fall through then attempt to parse
-			case "list-messaging-nodes":
-			case "setup-overlay":
-			case "list-routing-tables":
-			case "start":
-				System.out.println("Valid Command");
-				node.onCommand(input);
-				break;
-			default:
-				help();
-		}
+		
+		
+		if (Arrays.asList(Commands.REGISTER_COMMANDS).contains(args[0]))
+			node.onCommand(args);
+		else
+			help();
 	}
 	
 	/*

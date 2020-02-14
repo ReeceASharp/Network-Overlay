@@ -1,9 +1,13 @@
 package cs455.overlay.node;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class NodeList {
 	ArrayList<NodeData> nodes;
+	
+	static final Random rng = new Random(); //ID # generator
+	static final int MAX_SIZE = 128;		//2^7 nodes can be inserted
 	
 	public NodeList() {
 		nodes = new ArrayList<NodeData>();
@@ -25,6 +29,32 @@ public class NodeList {
 			sb.append(n.toString() + "\n");
 		}
 		return sb.toString();
+	}
+	
+	public int getOpenID() {
+		//TODO: Check somewhere for the max # of spots available, probably before here
+		//at this point it would probably be assumed that it was open
+		System.out.println(this);
+		
+		boolean found = true;
+		int id;
+		
+		do {
+			//generate a number
+			id = rng.nextInt(128);
+			
+			//check the array for it
+			for (NodeData nd : nodes)
+				if (nd.getID() == id)
+					found = false;
+			
+		} while (!found);
+		
+		return id;
+	}
+	
+	public boolean full() {
+		return nodes.size() < MAX_SIZE;
 	}
 	
 	

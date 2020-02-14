@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+
+import com.sun.jdi.InternalException;
 
 import cs455.overlay.node.Node;
 
@@ -14,13 +17,14 @@ public class TCPServerThread implements Runnable {
 	ServerSocket serverSocket;
 	TCPConnectionsCache cache;
 	Node node;
-	
+	//private volatile boolean listening;
 	
 	
 	public TCPServerThread(Node node) {
 		this.node = node;
 		cache = new TCPConnectionsCache();
 		serverSocket = null;
+		//listening = true;
 	}
 	
 	
@@ -39,38 +43,42 @@ public class TCPServerThread implements Runnable {
 		}
 		System.out.printf("TCPServer listening on IP: %s, Port: %s, Socket: %s%n", serverSocket.getInetAddress().getHostAddress(), 
 				serverSocket.getLocalPort(), serverSocket.getLocalSocketAddress());
-		/*
-		try {
-			//System.out.println(InetAddress.getLocalHost().getHostAddress());
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		*/
-		
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
 		node.updateServerInfo(serverSocket.getInetAddress().getHostAddress(), serverSocket.getLocalPort());
 		
-		boolean listening = true;
 		//listen for new connections to this program
+		//TODO: look at interrupting from above
 		
-		while (listening) {
-			try {
-				System.out.println(serverSocket.toString() + " Blocking");
-				Socket clientSocket = serverSocket.accept();
-				System.out.printf("Received Connection: %s, %s%n", clientSocket.getRemoteSocketAddress(), clientSocket.getInetAddress());
-				//cache.saveConnection(clientSocket);
-				System.out.println(cache.toString());
-				
-				//spawn a thread to handle that specific connection, 
-				new Thread(new TCPReceiverThread(clientSocket, node)).start();
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println("TCPServerThread::run::blocking_for_client:: " + e);
-			}
-			
-		}
+		try {
+			while (true) {
+					System.out.println("TCPServerThread::run::blocking");
+					Socket clientSocket = serverSocket.accept();
+					System.out.printf("Received Connection: %s, %s%n", clientSocket.getRemoteSocketAddress(), clientSocket.getInetAddress());
+					cache.saveConnection(clientSocket);
+					System.out.println(cache.toString());
+					
+					//spawn a thread to handle that specific connection, 
+					new Thread(new TCPReceiverThread(clientSocket, node)).start();
+				} 
+	
+		} catch (SocketException e) {
+			System.out.println("TCPServerThread::run::error::socketClosed::" + e);
+		} catch (IOException e) {
+			System.out.println("TCPServerThread::run::error_blocking_for_client:: " + e);
+		}  
+		
+		
+		System.out.println("TCPServerThread::run::exiting");
 	}
+	
+	/*
+	public void stop() {
+		listening = false;
+	}
+	*/
+	public void stopServer() throws IOException {
+		serverSocket.close();
+	}
+	
 }

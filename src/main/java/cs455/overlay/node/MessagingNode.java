@@ -32,7 +32,7 @@ public class MessagingNode implements Node {
 
 	public static void main(String[] args) throws IOException {
 		//TODO: get the host parameter from the arguments, along with the port
-		
+		//String host = args[0];
 
 		// *** init
 		// get instance of self to pass a reference into the threads
@@ -45,7 +45,6 @@ public class MessagingNode implements Node {
 		//start the interactive client
 		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
 		parser.start();
-		
 		// *** init
 		
 		
@@ -53,68 +52,6 @@ public class MessagingNode implements Node {
 		//send registration to registry
 		if (!sendRegistration(node, "127.0.0.1", Integer.parseInt(args[0])))
 			return;
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		/*
-		Event e = factory.createEvent(message);
-		System.out.println("Event Factory Created '" + e.getType() + "'");
-
-		System.out.println("Sending Data");
-		// get message
-		// byte[] message = new String("Hello World!").getBytes();
-
-		Integer messageLength = message.length;
-
-		outputStream.writeInt(messageLength);
-		outputStream.write(message, 0, messageLength);
-		*/
-
-
-		// deregistering the node, or exiting it
-
-		// close the streams
-		
-		/*
-		 * System.out.println("Closing Streams and socket to Registry now"); try {
-		 * Thread.sleep(2000); } catch (InterruptedException e) { // TODO Auto-generated
-		 * catch block e.printStackTrace(); }
-		 * 
-		 * outputStream.close(); socketToRegistry.close();
-		 */
-
-		// B. Assign random identifiers (between 0-127) to nodes within the system; the
-		// registry also has to
-		// ensure that two nodes are not assigned the same IDs i.e., there should be no
-		// collisions in the
-		// ID space.
-
-		// check for space
-		/*
-		 * boolean valid = true; do {
-		 * 
-		 * 
-		 * 
-		 * }while (!valid);
-		 */
-
-		// C. Allows messaging nodes to deregister themselves. This is performed when a
-		// messaging node
-		// leaves the overlay.
-		// D. Enables the construction of the overlay by populating the routing table at
-		// the messaging nodes.
-		// The routing table dictates the connections that a messaging node initiates
-		// with other messaging
-		// nodes in the system.
 
 		return;
 	}
@@ -125,8 +62,7 @@ public class MessagingNode implements Node {
 		//open a socket/connection with the registry
 		socketToRegistry = new Socket(host, port);
 		
-		//failed to open the socket
-		//System.out.println("MessagingNode::main::creating_the_server_socket:: " + e);
+		
 		System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
 		System.out.printf("Socket IP: %s, Port: %d%n", socketToRegistry.getInetAddress().getHostAddress(), socketToRegistry.getLocalPort());
 		//construct the message, and get the bytes
@@ -162,8 +98,7 @@ public class MessagingNode implements Node {
 	
 
 	@Override
-	public void onEvent(Event e) {
-		// TODO Auto-generated method stub
+	public void onEvent(Event e, Socket socket) {
 		System.out.println("MessagingNode::onEvent:: TODO");
 	}
 
@@ -178,8 +113,10 @@ public class MessagingNode implements Node {
 	}
 
 	@Override
-	public void onCommand(String command) {
+	public void onCommand(String[] command) {
+		System.out.printf("MessagingNode::onCommand:: '%s'%n", command.toString());
 		
+
 		
 	}
 	

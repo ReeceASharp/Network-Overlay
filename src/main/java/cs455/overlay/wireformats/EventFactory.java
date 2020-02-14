@@ -23,7 +23,7 @@ public class EventFactory {
 			case 2:
 				return new OverlayNodeSendsRegistration(marshalledBytes);
 			case 3:
-				return new RegistryReportsRegistrationStatus();
+				return new RegistryReportsRegistrationStatus(marshalledBytes);
 			case 4:
 				return new OverlayNodeSendsDeregistration();
 			case 5:

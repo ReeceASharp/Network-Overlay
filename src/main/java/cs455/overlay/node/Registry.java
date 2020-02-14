@@ -16,7 +16,7 @@ import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 public class Registry implements Node {
 	
 	//private static StatisticsCollectorAndDisplay statDisplay;
-	static final Random rng = new Random(); //ID # generator
+
 	
 	NodeList nodeList;
 	
@@ -47,11 +47,11 @@ public class Registry implements Node {
 	}
 
 	@Override
-	public void onEvent(Event e) {
+	public void onEvent(Event e, Socket socket) {
 		switch(e.getType()) {
 			case (Protocol.OVERLAY_NODE_SENDS_REGISTRATION):
 				try {
-					nodeRegistration(e);
+					nodeRegistration(e, socket);
 				} catch (IOException e1) {
 					System.out.printf("Failed nodeRegistration: '%s'%n", e.toString());
 					e1.printStackTrace();
@@ -75,8 +75,22 @@ public class Registry implements Node {
 		}
 	}
 	
-	public void onCommand(String command) {
-		System.out.println("Registry::onCommand");
+	public void onCommand(String[] command) {
+		System.out.printf("Registry::onCommand:: '%s'%n", command.toString());
+		
+		switch (command[0]) {
+			case "list-messaging-nodes":
+				break;
+			case "setup-overlay":
+				break;
+			case "list-routing-tables":
+				break;
+			case "start":
+				break;
+			default:
+				System.out.println("Should never reach this");
+	}
+		
 	}
 	
 	public EventFactory getFactory() {
@@ -84,20 +98,35 @@ public class Registry implements Node {
 	}
 	
 	//node wants to register with the registry
-	private void nodeRegistration(Event e) throws IOException {
-		System.out.println("Registry::nodeRegistration");
+	private void nodeRegistration(Event e, Socket socket) throws IOException {
+		//check if node already exists
+		String message;
+		
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
-		System.out.printf("IP: %s, Port: %d%n", registration.getIP(), registration.getPort());
+		System.out.printf("Registry::nodeRegistration::IP: %s, Port: %d%n", registration.getIP(), registration.getPort());
 		
-		Socket connection = new Socket(registration.getIP(), registration.getPort());
 		
-		nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), 43));
+		//check if Registry is fill, and that the node is accurate
+		int status = checkNode(e, socket);
+		
+		if (status != -1)
+			nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), status));
+		
 		
 		//connection.
-
+		
+		System.out.println(nodeList);
 		
 		//respond with a message
 		
+	}
+	
+	private int checkNode(Event e, Socket socket) {
+		//check that the node data matches the socket connection it came through
+		
+		//check that there's open space for it
+		
+		return -1;
 	}
 	
 	//node wants to deregister
