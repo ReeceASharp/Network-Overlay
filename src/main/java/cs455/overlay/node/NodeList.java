@@ -35,7 +35,7 @@ public class NodeList {
 	public int getOpenID() {
 		//TODO: Check somewhere for the max # of spots available, probably before here
 		//at this point it would probably be assumed that it was open
-		System.out.println(this);
+		//System.out.println(this);
 		
 		boolean found = true;
 		int id;
@@ -56,6 +56,17 @@ public class NodeList {
 	
 	public boolean full() {
 		return nodes.size() < MAX_SIZE;
+	}
+	
+	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
+	//as the port allocation on the server is dynamic
+	public boolean contains(String ip, int port) {
+		for (NodeData n : nodes) {
+			if (n.getIP().equals(ip) && n.getPort() == port)
+				return true;
+		}		
+		return false;
+		
 	}
 	
 	

@@ -33,22 +33,25 @@ public class TCPServerThread implements Runnable {
 	public void run() {
 		try {
 			serverSocket = new ServerSocket(port);
+			addr = InetAddress.getLocalHost();
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
 		
+		//The serverSocket doesn't have an IP associated, only a port, need to query this host for the IP it's running on
+		
 		
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
-		node.updateServerInfo(serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
-		System.out.printf("Address: %s, Port: %s %n", serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
+		node.updateServerInfo(addr.getHostAddress(), serverSocket.getLocalPort());
+		//System.out.printf("Address: %s, Port: %s %n", serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
 		System.out.printf("TCPServer on %s: IP:'%s'%n", serverSocket, node.getServerIP());
 		//listen for new connections to this program
 		//TODO: look at interrupting from above
 		
 		try {
 			while (true) {
-					System.out.println("TCPServerThread::run::blocking");
+					//System.out.println("TCPServerThread::run::blocking");
 					Socket clientSocket = serverSocket.accept();
 					String value = clientSocket.getLocalAddress().getHostAddress();
 					

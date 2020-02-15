@@ -13,5 +13,4 @@ public class RegistryRequestsTrafficSummary implements Event {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

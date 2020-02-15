@@ -17,7 +17,7 @@ public class EventFactory {
 	public Event createEvent(byte[] marshalledBytes) throws IOException {
 		ByteArrayInputStream bin = new ByteArrayInputStream(marshalledBytes);
 		int value = ByteBuffer.wrap( marshalledBytes ).getInt();
-		System.out.printf("EventFactory::createEvent: Value = %d%n", value);
+		//System.out.printf("EventFactory::createEvent: Value = %d%n", value);
 		
 		switch (value) {
 			case 2:

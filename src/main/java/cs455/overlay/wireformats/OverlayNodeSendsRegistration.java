@@ -12,17 +12,17 @@ public class OverlayNodeSendsRegistration implements Event {
 	static final int type = Protocol.OVERLAY_NODE_SENDS_REGISTRATION;
 	
 	
-	private byte[] ip;
+	private String ip;
 	private int port;
 	
-	public OverlayNodeSendsRegistration(byte[] bs, int port) {
+	public OverlayNodeSendsRegistration(String bs, int port) {
 		this.ip = bs;
 		this.port = port;
 	}
 	
 	
 	public OverlayNodeSendsRegistration(byte[] marshalledBytes) throws IOException {
-		System.out.println("OverlayNodeSendsRegistration::ctor");
+		//System.out.println("OverlayNodeSendsRegistration::ctor");
 		//create a wrapper around the bytes to leverage some methods to easily extract values
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
 		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
@@ -36,7 +36,7 @@ public class OverlayNodeSendsRegistration implements Event {
 		
 		byte[] ipBytes = new byte[ipLength];
 		din.readFully(ipBytes);
-		ip = ipBytes;
+		ip = new String(ipBytes);
 		
 		//retrieve port
 		port = din.readInt();
@@ -69,9 +69,9 @@ public class OverlayNodeSendsRegistration implements Event {
 			dout.writeInt(type);
 			
 			//write IP address
-			//byte[] ipBytes = ip;
-			dout.writeInt(ip.length);
-			dout.write(ip); 
+			byte[] ipBytes = ip.getBytes();
+			dout.writeInt(ipBytes.length);
+			dout.write(ipBytes); 
 			//System.out.println("IP: " + ip);
 			
 			//write port
@@ -95,7 +95,7 @@ public class OverlayNodeSendsRegistration implements Event {
 		return message;
 	}
 	
-	public byte[] getIP() {
+	public String getIP() {
 		return ip;
 	}
 

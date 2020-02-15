@@ -28,7 +28,7 @@ public class TCPConnectionsCache {
 		StringBuilder sb = new StringBuilder();
 		sb.append("TCPConnectionsCache: \n");
 		sb.append(sockets.toString());
-		sb.append("\n***\n");
+		sb.append("\n***");
 		return sb.toString();
 	}
 

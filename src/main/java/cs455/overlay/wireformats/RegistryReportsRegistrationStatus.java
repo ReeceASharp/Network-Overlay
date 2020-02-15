@@ -21,7 +21,7 @@ public class RegistryReportsRegistrationStatus implements Event {
 	}
 
 	public RegistryReportsRegistrationStatus(byte[] marshalledBytes) throws IOException {
-		System.out.println("RegistryReportsRegistrationStatus::ctor");
+		//System.out.println("RegistryReportsRegistrationStatus::ctor");
 		
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
 		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));

@@ -1,12 +1,12 @@
 package cs455.overlay.node;
 
 public class NodeData implements Comparable<NodeData> {
-	byte[] ip;	//IP associated with the node's server
+	String ip;	//IP associated with the node's server
 	int port;		//port associated with the node's server
 	int id;			//ID issued by the Registry
 	
-	public NodeData(byte[] bs, int port, int id) {
-		this.ip = bs;
+	public NodeData(String ip, int port, int id) {
+		this.ip = ip;
 		this.port = port;
 		this.id = id;
 	}
@@ -28,7 +28,7 @@ public class NodeData implements Comparable<NodeData> {
             (this.getID() == otherNode.getID() ? 0 : 1));
 	}
 	
-	public byte[] getIP() {
+	public String getIP() {
 		return ip;
 	}
 	

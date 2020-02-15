@@ -7,6 +7,7 @@ import java.net.SocketException;
 
 import cs455.overlay.node.Node;
 import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.EventFactory;
 
 
 public class TCPReceiverThread implements Runnable {
@@ -46,7 +47,7 @@ public class TCPReceiverThread implements Runnable {
 				byte[] incomingMessage = new byte[dataLength];
 				dataIn.readFully(incomingMessage, 0, dataLength);	
 				
-				Event e = node.getFactory().createEvent(incomingMessage);
+				Event e = EventFactory.getInstance().createEvent(incomingMessage);
 				
 				
 				//received message, decode
