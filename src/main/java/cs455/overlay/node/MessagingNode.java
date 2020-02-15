@@ -36,8 +36,11 @@ public class MessagingNode implements Node {
 	
 	public static void main(String[] args) throws IOException {
 		//TODO: get the host parameter from the arguments, along with the port
-		//String host = args[0];
-
+		String registryHost = args[0];
+		int registryPort = Integer.parseInt(args[1]);
+		
+		System.out.println("Host: " + registryHost + ", Port: " + registryPort);
+		
 		// *** init
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
@@ -56,7 +59,7 @@ public class MessagingNode implements Node {
 		
 		
 		//send registration to registry
-		if (!sendRegistration(node, "localhost", Integer.parseInt(args[0])))
+		if (!sendRegistration(node, registryHost, registryPort))
 			return;
 
 		return;
@@ -70,6 +73,11 @@ public class MessagingNode implements Node {
 		//System.out.println("InetAddress.getLocalHost(): " + InetAddress.getLoopbackAddress());
 
 		//socketToRegistry = new Socket(host, port, InetAddress.getLoopbackAddress(), node.getServerPort());
+		//get ip of host
+		InetAddress ip = InetAddress.getByName(host);
+		byte[] ipA = ip.getAddress();
+		System.out.println("IP address: " + ipA);
+		
 		socketToRegistry = new Socket(host, port);
 		
 		System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
