@@ -39,7 +39,15 @@ public class MessagingNode implements Node {
 		String registryHost = args[0];
 		int registryPort = Integer.parseInt(args[1]);
 		
-		System.out.println("Host: " + registryHost + ", Port: " + registryPort);
+
+		
+		InetAddress ip = InetAddress.getLocalHost();
+		String host = ip.getHostName();
+
+		//System.out.println("Host: " + registryHost + ", Port: " + registryPort + ", IP: " + ip.getAddress());
+		
+		System.out.printf("Host: %s, IPA: %s, HostIP: %s%n",
+				host, ip.getAddress(), ip.getHostAddress());
 		
 		// *** init
 		// get instance of self to pass a reference into the threads
@@ -76,7 +84,7 @@ public class MessagingNode implements Node {
 		//get ip of host
 		InetAddress ip = InetAddress.getByName(host);
 		byte[] ipA = ip.getAddress();
-		System.out.println("IP address: " + ipA);
+		System.out.printf("HOST IP address: %s, Inet: %s%n", ipA, ip);
 		
 		socketToRegistry = new Socket(host, port);
 		

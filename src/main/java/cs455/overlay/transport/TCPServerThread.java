@@ -14,21 +14,25 @@ public class TCPServerThread implements Runnable {
 	TCPConnectionsCache cache;
 	Node node;
 	InetAddress addr;
+	int port;
 	
+
 	//private volatile boolean listening;
-	
-	
 	public TCPServerThread(Node node) {
+		this(node, 0);
+	}
+	
+	public TCPServerThread(Node node, int port) {
 		this.node = node;
 		cache = new TCPConnectionsCache();
 		serverSocket = null;
+		this.port = port;
 	}
-	
 	
 	@Override
 	public void run() {
 		try {
-			serverSocket = new ServerSocket(0);
+			serverSocket = new ServerSocket(port);
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
@@ -37,6 +41,7 @@ public class TCPServerThread implements Runnable {
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
 		node.updateServerInfo(serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
+		System.out.printf("Address: %s, Port: %s %n", serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
 		System.out.printf("TCPServer on %s: IP:'%s'%n", serverSocket, node.getServerIP());
 		//listen for new connections to this program
 		//TODO: look at interrupting from above
@@ -46,7 +51,8 @@ public class TCPServerThread implements Runnable {
 					System.out.println("TCPServerThread::run::blocking");
 					Socket clientSocket = serverSocket.accept();
 					String value = clientSocket.getLocalAddress().getHostAddress();
-					System.out.println("VALUE: " + value);
+					
+					//System.out.println("VALUE: " + value);
 					
 					System.out.printf("Received Connection: %s%n", clientSocket);
 					

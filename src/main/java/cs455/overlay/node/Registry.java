@@ -41,15 +41,13 @@ public class Registry implements Node {
 		String host = ip.getHostName();
 		
 		
-		System.out.println("Host: " + host + ", Port: " + port);
+		System.out.printf("Host: %s, Port: %s, IPA: %s, HostIP: %s%n",
+				host, port, ip.getAddress(), ip.getHostAddress());
 
-		//InetAddress addr = InetAddress.getByName("127.0.0.1");
-		//InetAddress add2 = InetAddress.getByName("localhost");
 		
-		//System.out.println("addr: " + addr + ", add2: " + add2 );
 		
 		//start the server thread that will listen for clients wanting to connect
-		Thread server = new Thread(new TCPServerThread(node));
+		Thread server = new Thread(new TCPServerThread(node, port));
 		server.start();
 
 		//start the interactive client
@@ -131,7 +129,7 @@ public class Registry implements Node {
 		//check if Registry is fill, and that the node is accurate
 		int status = checkNode(registration, socket);
 
-		if (status != -1)
+		if (status >= -1)
 			nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), status));
 
 		System.out.println(nodeList);
@@ -156,10 +154,12 @@ public class Registry implements Node {
 	}
 
 	private int checkNode(OverlayNodeSendsRegistration payload, Socket socket) {
-		System.out.println("Registry::checkNode");
+		//System.out.println("Registry::checkNode");
 		//check that the payload IP matches the IP address it came from
-		System.out.println(payload.getIP() + " vs. " + socket.getInetAddress());
+		System.out.println("Registry::checkNode::" + socket);
+		System.out.println("Registry::checkNode" + payload.getIP() + " vs. " + socket.getInetAddress().getAddress());
 
+		
 		
 		if (!(new String(payload.getIP()).equals(socket.getLocalAddress().getHostAddress()))) {
 			return -1;
