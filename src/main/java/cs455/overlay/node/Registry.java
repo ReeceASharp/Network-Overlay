@@ -22,7 +22,7 @@ public class Registry implements Node {
 
 	private EventFactory factory;
 
-	private String serverIP;
+	private byte[] serverIP;
 	private int serverPort;
 
 
@@ -33,11 +33,20 @@ public class Registry implements Node {
 
 	public static void main(String[] args) throws IOException {
 		Registry node = new Registry();
-
-		InetAddress addr = InetAddress.getByName("127.0.0.1");
-		InetAddress add2 = InetAddress.getByName("localhost");
 		
-		System.out.println("addr: " + addr + ", add2: " + add2 );
+		int port = Integer.parseInt(args[0]);
+		
+		
+		InetAddress ip = InetAddress.getLocalHost();
+		String host = ip.getHostName();
+		
+		
+		System.out.println("Host: " + host + ", Port: " + port);
+
+		//InetAddress addr = InetAddress.getByName("127.0.0.1");
+		//InetAddress add2 = InetAddress.getByName("localhost");
+		
+		//System.out.println("addr: " + addr + ", add2: " + add2 );
 		
 		//start the server thread that will listen for clients wanting to connect
 		Thread server = new Thread(new TCPServerThread(node));
@@ -110,10 +119,14 @@ public class Registry implements Node {
 	private void nodeRegistration(Event e, Socket socket) throws IOException {
 		//check if node already exists
 		String message = "rer";
-
+		
+		
+		
+		
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
-		System.out.printf("Registry::nodeRegistration::IP: %s, Port: %d%n", registration.getIP(), registration.getPort());
-
+		System.out.printf("Registry::nodeRegistration::IP: '%s, Port: %d%n", registration.getIP(), registration.getPort());
+		//System.out.printf("Registry::nodeRegistration::IP: '%s, Port: %d%n", e.getIP(), e.getPort());
+		
 
 		//check if Registry is fill, and that the node is accurate
 		int status = checkNode(registration, socket);
@@ -145,9 +158,10 @@ public class Registry implements Node {
 	private int checkNode(OverlayNodeSendsRegistration payload, Socket socket) {
 		System.out.println("Registry::checkNode");
 		//check that the payload IP matches the IP address it came from
-		System.out.println(payload.getIP() + "vs. " + socket.getLocalAddress().getHostAddress());
+		System.out.println(payload.getIP() + " vs. " + socket.getInetAddress());
 
-		if (!payload.getIP().equals(socket.getLocalAddress().getHostAddress())) {
+		
+		if (!(new String(payload.getIP()).equals(socket.getLocalAddress().getHostAddress()))) {
 			return -1;
 		}
 
@@ -188,13 +202,13 @@ public class Registry implements Node {
 
 	//TODO: may need to synchronize this, as its setters and getters may be accessed simultaneously
 	@Override
-	public void updateServerInfo(String ip, int port) {
+	public void updateServerInfo(byte[] ip, int port) {
 		serverIP = ip;
 		serverPort = port;
 	}
 
 	@Override
-	public String getServerIP() {
+	public byte[] getServerIP() {
 		return serverIP;
 	}
 

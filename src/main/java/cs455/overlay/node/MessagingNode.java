@@ -21,7 +21,7 @@ public class MessagingNode implements Node {
 	TCPConnectionsCache cache; //holds the socket addresses
 	private EventFactory factory;
 	
-	private String serverIP;
+	private byte[] serverIP;
 	private int serverPort;
 	private int id;
 	
@@ -36,11 +36,16 @@ public class MessagingNode implements Node {
 	
 	public static void main(String[] args) throws IOException {
 		//TODO: get the host parameter from the arguments, along with the port
-		//String host = args[0];
-
+		String registryHost = args[0];
+		int registryPort = Integer.parseInt(args[1]);
+		
+		System.out.println("Host: " + registryHost + ", Port: " + registryPort);
+		
 		// *** init
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
+
+		
 
 		// start server to listen for incoming connections
 		Thread server = new Thread(new TCPServerThread(node));
@@ -54,7 +59,7 @@ public class MessagingNode implements Node {
 		
 		
 		//send registration to registry
-		if (!sendRegistration(node, "localhost", Integer.parseInt(args[0])))
+		if (!sendRegistration(node, registryHost, registryPort))
 			return;
 
 		return;
@@ -65,13 +70,18 @@ public class MessagingNode implements Node {
 		Socket socketToRegistry = null;
 		//open a socket/connection with the registry
 		
-		System.out.println("InetAddress.getLocalHost(): " + InetAddress.getLoopbackAddress());
+		//System.out.println("InetAddress.getLocalHost(): " + InetAddress.getLoopbackAddress());
 
 		//socketToRegistry = new Socket(host, port, InetAddress.getLoopbackAddress(), node.getServerPort());
+		//get ip of host
+		InetAddress ip = InetAddress.getByName(host);
+		byte[] ipA = ip.getAddress();
+		System.out.println("IP address: " + ipA);
+		
 		socketToRegistry = new Socket(host, port);
 		
 		System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
-		System.out.printf("MessagingNode::SendRegistration::%s%n", socketToRegistry);
+		System.out.printf("MessagingNode::SendRegistration::%s, '%s'%n", socketToRegistry, node.getServerIP());
 		//construct the message, and get the bytes
 		byte[] marshalledBytes = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		
@@ -179,14 +189,14 @@ public class MessagingNode implements Node {
 	 * is done dynamically in the thread, it needs to be passed back up through the node ref
 	 */
 	@Override
-	public void updateServerInfo(String ip, int port) {
+	public void updateServerInfo(byte[] ip, int port) {
 		serverIP = ip;
 		serverPort = port;
 	}
 	
 	//TODO: may need to be synchronized, but because of the order this may not need to happen
 	@Override
-	public String getServerIP() {
+	public byte[] getServerIP() {
 		return serverIP;
 	}
 	

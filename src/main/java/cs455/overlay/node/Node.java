@@ -9,7 +9,7 @@ public interface Node {
 	public void onEvent(Event e, Socket socket);
 	public EventFactory getFactory();
 	public void onCommand(String[] command);
-	public void updateServerInfo(String ip, int port);
-	public String getServerIP();
+	public void updateServerInfo(byte[] bs, int port);
+	public byte[] getServerIP();
 	public int getServerPort();
 }
