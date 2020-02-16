@@ -31,6 +31,7 @@ public class RegistryReportsRegistrationStatus implements Event {
 		
 		//get the status (int)
 		status = din.readInt();
+		
 		//get the information string
 		int infoLength = din.readInt();
 		byte[] infoBytes = new byte[infoLength];
@@ -50,6 +51,8 @@ public class RegistryReportsRegistrationStatus implements Event {
 
 	@Override
 	public byte[] getBytes() {
+		System.out.printf("PRINTING CLASS NAME: %s, %s%n", this.getClass().getSimpleName(), this.getClass());
+		
 		//put into a buffer
 		byte[] message = null;
 		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();

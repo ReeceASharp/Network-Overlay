@@ -25,23 +25,23 @@ public class EventFactory {
 			case 3:
 				return new RegistryReportsRegistrationStatus(marshalledBytes);
 			case 4:
-				return new OverlayNodeSendsDeregistration();
+				return new OverlayNodeSendsDeregistration(marshalledBytes);
 			case 5:
-				return new RegistryReportsDeregistrationStatus();
+				return new RegistryReportsDeregistrationStatus(marshalledBytes);
 			case 6:
-				return new RegistrySendsNodeManifest();
+				return new RegistrySendsNodeManifest(marshalledBytes);
 			case 7:
-				return new NodeReportsOverlaySetupStatus();
+				return new NodeReportsOverlaySetupStatus(marshalledBytes);
 			case 8:
-				return new RegistryRequestsTaskInitiate();
+				return new RegistryRequestsTaskInitiate(marshalledBytes);
 			case 9:
-				return new OverlayNodeSendsData();
+				return new OverlayNodeSendsData(marshalledBytes);
 			case 10:
-				return new OverlayNodeReportsTaskFinished();
+				return new OverlayNodeReportsTaskFinished(marshalledBytes);
 			case 11:
-				return new RegistryRequestsTrafficSummary();
+				return new RegistryRequestsTrafficSummary(marshalledBytes);
 			case 12:
-				return new OverlayNodeReportsTrafficSummary();
+				return new OverlayNodeReportsTrafficSummary(marshalledBytes);
 			default:
 				System.err.printf("EventFactory::createEvent: 'Could not create Error': %d%n", value);
 				return null;

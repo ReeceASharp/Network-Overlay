@@ -9,6 +9,7 @@ import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 
 public class Registry implements Node {
@@ -55,7 +56,6 @@ public class Registry implements Node {
 		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
 		parser.start();
 
-		// System.out.println("Registry::main::exiting");
 	}
 
 	@Override
@@ -70,7 +70,8 @@ public class Registry implements Node {
 			}
 			break;
 		case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
-			nodeDeRegistration();
+			System.out.println("Node Deregistration");
+			nodeDeregistration(e);
 			break;
 		case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
 			nodeSetupStatus();
@@ -160,7 +161,7 @@ public class Registry implements Node {
 		}
 
 		// check that it isn't already inside
-		if (nodeList.contains(ip, port)) {
+		if (nodeList.contains(ip, port) > -1) {
 			System.out.println("Contains value");
 			return -1;
 		}
@@ -170,8 +171,21 @@ public class Registry implements Node {
 	}
 
 	// node wants to deregister
-	private void nodeDeRegistration() {
-
+	private void nodeDeregistration(Event e) {
+		System.out.println("RECEIVED NODE REGISTRATION REQUEST");
+		OverlayNodeSendsDeregistration deregister = (OverlayNodeSendsDeregistration) e;
+		int index = nodeList.contains(deregister.getIP(), deregister.getPort());
+		//found in list
+		if (index > -1) {
+			System.out.println("Found node!");
+			//removeNode(
+		}
+		else {
+			System.out.println("Node not inside");
+		}
+		//not found, build an error message
+		
+		
 	}
 
 	// node is reporting its status

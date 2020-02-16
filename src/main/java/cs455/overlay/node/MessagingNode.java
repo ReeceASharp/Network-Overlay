@@ -6,6 +6,7 @@ import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
@@ -65,29 +66,26 @@ public class MessagingNode implements Node {
 		parser.start();
 		// *** init
 		
-		
+		sendRegistration(node, registryHost, registryPort);
 		
 		//send registration to registry
-		if (!sendRegistration(node, registryHost, registryPort))
-			return;
 
 		return;
 	}
 	
-	private static boolean sendRegistration(Node node, String host, int port) throws IOException {
+	private static boolean sendRegistration(MessagingNode node, String host, int port) throws IOException {
 		// Attempting to open a connection with the Registry
-		Socket socketToRegistry = null;
 		//open a socket/connection with the registry
 		
 		//System.out.println("InetAddress.getLocalHost(): " + InetAddress.getLoopbackAddress());
 
 		//socketToRegistry = new Socket(host, port, InetAddress.getLoopbackAddress(), node.getServerPort());
 		//get ip of host
-		InetAddress ip = InetAddress.getByName(host);
-		byte[] ipA = ip.getAddress();
-		System.out.printf("HOST IP address: %s, Inet: %s%n", ipA, ip);
-		
-		socketToRegistry = new Socket(host, port);
+		//InetAddress ip = InetAddress.getByName(host);
+		//byte[] ipA = ip.getAddress();
+		//System.out.printf("HOST IP address: %s, Inet: %s%n", ipA, ip);
+		Socket registrySocket = new Socket(host, port);
+		node.setRegistrySocket(registrySocket);
 		
 		//System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
 		//System.out.printf("MessagingNode::SendRegistration::%s, '%s'%n", socketToRegistry, node.getServerIP());
@@ -95,11 +93,11 @@ public class MessagingNode implements Node {
 		byte[] marshalledBytes = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		
 		//create a listener on this socket for the response from the Registry
-		Thread receiver = new Thread(new TCPReceiverThread(socketToRegistry, node));
+		Thread receiver = new Thread(new TCPReceiverThread(registrySocket, node));
 		receiver.start();
 
 		//Send the message to the Registry to attempt registration
-		Thread sender = new Thread(new TCPSenderThread(socketToRegistry, marshalledBytes));
+		Thread sender = new Thread(new TCPSenderThread(registrySocket, marshalledBytes));
 		sender.start();
 		
 
@@ -112,15 +110,17 @@ public class MessagingNode implements Node {
 	}
 	
 	
-	private boolean sendDeregistration(Node node, String host, int port) throws IOException {
+	private boolean sendDeregistration() throws IOException {
 		
 		//pull registry from cache
 		//Socket connection = new Socket(host, port);
 		//System.out.println("MessagingNode::SendDeRegistration::Successful Connection opened");
-		byte[] message = new OverlayNodeSendsDeregistration(node.getServerIP(), node.getServerPort()).getBytes();
+		byte[] message = new OverlayNodeSendsDeregistration(this.getServerIP(), this.getServerPort()).getBytes();
 		
 		
 		//create a thread with the Registry socket, and the message going to it
+		
+		
 		Thread sender = new Thread(new TCPSenderThread(registrySocket, message));
 		sender.start();
 
@@ -138,6 +138,7 @@ public class MessagingNode implements Node {
 			registrationStatus(e);
 			break;
 		case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:
+			deregistationStatus(e);
 			break;
 		case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
 			break;
@@ -152,21 +153,25 @@ public class MessagingNode implements Node {
 	}
 
 
+	private void deregistationStatus(Event e) {
+		// TODO Auto-generated method stub
+		RegistryReportsDeregistrationStatus message = (RegistryReportsDeregistrationStatus) e;
+		System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", message.getInfo(), id);
+	}
+
 
 	private void registrationStatus(Event e) {
 		//cast to the correct message type
-		RegistryReportsRegistrationStatus r = (RegistryReportsRegistrationStatus) e;
-		System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", r.getInfo(), id);
+		RegistryReportsRegistrationStatus message = (RegistryReportsRegistrationStatus) e;
+		System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", message.getInfo(), message.getStatus());
 		
 		//if the status is valid (> -1), then save the ID
-		int status = r.getStatus();
+		int status = message.getStatus();
 		if (status > -1) {
 			id = status;
 			return;
 		}	
-		System.out.println(r.getInfo());
-
-		
+		System.out.println(message.getInfo());
 	}
 
 	@Override
@@ -184,7 +189,12 @@ public class MessagingNode implements Node {
 			//TODO
 			break;
 		case "exit-overlay":
-			sendDeregistration();
+			try {
+				sendDeregistration();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			break;
 		default:
 			System.out.println("Should never reach this");
@@ -214,5 +224,11 @@ public class MessagingNode implements Node {
 		return serverPort;
 	}
 	
+	public Socket getRegistrySocket() {
+		return registrySocket;
+	}
+	public void setRegistrySocket(Socket socket) {
+		registrySocket = socket;
+	}
 
 }

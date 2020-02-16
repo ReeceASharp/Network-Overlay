@@ -15,14 +15,13 @@ public class OverlayNodeSendsRegistration implements Event {
 	private String ip;
 	private int port;
 	
-	public OverlayNodeSendsRegistration(String bs, int port) {
-		this.ip = bs;
+	public OverlayNodeSendsRegistration(String ip, int port) {
+		this.ip = ip;
 		this.port = port;
 	}
 	
 	
 	public OverlayNodeSendsRegistration(byte[] marshalledBytes) throws IOException {
-		//System.out.println("OverlayNodeSendsRegistration::ctor");
 		//create a wrapper around the bytes to leverage some methods to easily extract values
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
 		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
@@ -43,10 +42,7 @@ public class OverlayNodeSendsRegistration implements Event {
 		//System.out.printf("IP: '%s', Port: '%d'%n", ip, port);
 		
 		//close wrapper streams
-		//System.out.println("OverlayNodeSendsRegistration::ctor::Closing inputStream");
 		baInputStream.close();
-		
-		//System.out.println("OverlayNodeSendsRegistration::ctor::Closing datainputStream");
 		din.close();		
 		
 	}

@@ -60,12 +60,12 @@ public class NodeList {
 	
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
-	public boolean contains(String ip, int port) {
-		for (NodeData n : nodes) {
-			if (n.getIP().equals(ip) && n.getPort() == port)
-				return true;
+	public int contains(String ip, int port) {
+		for (int i = 0; i < nodes.size(); i++) {
+			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
+				return i;
 		}		
-		return false;
+		return -1;
 		
 	}
 	

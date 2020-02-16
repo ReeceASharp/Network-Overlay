@@ -2,6 +2,10 @@ package cs455.overlay.wireformats;
 
 public class RegistryRequestsTrafficSummary implements Event {
 
+	public RegistryRequestsTrafficSummary(byte[] marshalledBytes) {
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public int getType() {
 		// TODO Auto-generated method stub
