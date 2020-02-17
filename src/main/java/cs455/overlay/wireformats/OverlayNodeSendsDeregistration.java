@@ -9,7 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class OverlayNodeSendsDeregistration implements Event {
-	static final int type = Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION;
+	private static final int type = Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION;
 	
 	private String ip;
 	private int port;
@@ -45,8 +45,7 @@ public class OverlayNodeSendsDeregistration implements Event {
 		
 		//close wrapper streams
 		baInputStream.close();
-		din.close();		
-		
+		din.close();	
 	}
 	
 	

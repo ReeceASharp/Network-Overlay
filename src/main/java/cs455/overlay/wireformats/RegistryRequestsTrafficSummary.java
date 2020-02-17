@@ -1,20 +1,33 @@
 package cs455.overlay.wireformats;
 
-public class RegistryRequestsTrafficSummary implements Event {
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
-	public RegistryRequestsTrafficSummary(byte[] marshalledBytes) {
-		// TODO Auto-generated constructor stub
-	}
+public class RegistryRequestsTrafficSummary implements Event {
+	private static final int type = Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY;
+
 
 	@Override
 	public int getType() {
-		// TODO Auto-generated method stub
-		return 0;
+		return type;
 	}
 
 	@Override
 	public byte[] getBytes() {
-		// TODO Auto-generated method stub
-		return null;
+		byte[] marshalledBytes = null;
+		
+		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
+		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
+		
+		try {
+			dout.writeByte(type);
+		} catch (IOException e) {
+			//failed for some reason
+			System.out.println(e);
+		}
+		
+		return marshalledBytes;
 	}
 }

@@ -17,8 +17,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class MessagingNode implements Node {
-	// int sendTracker; // # of messages sent
-	// int receiveTracker; // # of messages received
+	// int sendTracker; // # of messages sent, must be atomic
+	// int receiveTracker; // # of messages received, must be atomic
 	//private TCPConnectionsCache cache; //holds the socket addresses
 	//private EventFactory factory;
 	
@@ -76,21 +76,10 @@ public class MessagingNode implements Node {
 	}
 	
 	private static boolean sendRegistration(MessagingNode node, String host, int port) throws IOException {
-		// Attempting to open a connection with the Registry
 		//open a socket/connection with the registry
-		
-		//System.out.println("InetAddress.getLocalHost(): " + InetAddress.getLoopbackAddress());
-
-		//socketToRegistry = new Socket(host, port, InetAddress.getLoopbackAddress(), node.getServerPort());
-		//get ip of host
-		//InetAddress ip = InetAddress.getByName(host);
-		//byte[] ipA = ip.getAddress();
-		//System.out.printf("HOST IP address: %s, Inet: %s%n", ipA, ip);
 		Socket registrySocket = new Socket(host, port);
 		node.setRegistrySocket(registrySocket);
 		
-		//System.out.println("MessagingNode::SendRegistration::Successful Connection opened");
-		//System.out.printf("MessagingNode::SendRegistration::%s, '%s'%n", socketToRegistry, node.getServerIP());
 		//construct the message, and get the bytes
 		byte[] marshalledBytes = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
 		
@@ -99,14 +88,13 @@ public class MessagingNode implements Node {
 		receiver.start();
 
 		//Send the message to the Registry to attempt registration
-		Thread sender = new Thread(new TCPSenderThread(registrySocket, marshalledBytes));
-		sender.start();
+		node.sendMessage(registrySocket, marshalledBytes);
 		
 		return true;
 	}
 	
-	private void sendMessage() {
-		System.out.println("MessagingNode::SendMessage::Successful Connection opened");
+	private void sendMessage(Socket socket, byte[] marshalledBytes) throws IOException {
+		new Thread(new TCPSenderThread(socket, marshalledBytes)).start();
 	}
 	
 	
@@ -117,10 +105,9 @@ public class MessagingNode implements Node {
 		//System.out.println("MessagingNode::SendDeRegistration::Successful Connection opened");
 		byte[] message = new OverlayNodeSendsDeregistration(this.getServerIP(), 
 				this.getServerPort(), id).getBytes();
-		//create a thread with the Registry socket, and the message going to it
 		
-		Thread sender = new Thread(new TCPSenderThread(registrySocket, message));
-		sender.start();
+		//create a thread with the Registry socket, and the message going to it
+		sendMessage(registrySocket, message);
 
 		return true;
 		
@@ -129,8 +116,7 @@ public class MessagingNode implements Node {
 
 	@Override
 	public void onEvent(Event e, Socket socket) {
-		//System.out.println("MessagingNode::onEvent:: TODO");
-		
+
 		switch(e.getType()) {
 		case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:
 			registrationStatus(e);
@@ -139,18 +125,41 @@ public class MessagingNode implements Node {
 			deregistationStatus(e);
 			break;
 		case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
+			routingSetup(e);
 			//TODO
 			break;
 		case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
+			startPacketSending(e);
 			//TODO
 			break;
 		case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
+			buildSummary(e);
 			//TODO
 			break;
 		default:
 			System.out.printf("Invalid Event type received: '%d'%n");
 		}
 
+	}
+
+
+	private void buildSummary(Event e) {
+		// TODO Auto-generated method stub
+		//build message of type OverlayNodeReportsTrafficSummary
+		System.out.println("MessagingNode::buildSummary");
+
+	}
+
+
+	private void startPacketSending(Event e) {
+		// TODO Auto-generated method stub
+		System.out.println("MessagingNode::startPacketSending");
+	}
+
+
+	private void routingSetup(Event e) {
+		// TODO Auto-generated method stub
+		System.out.println("MessagingNode::routingSetup");
 	}
 
 
