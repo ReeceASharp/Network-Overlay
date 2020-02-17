@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class RegistryReportsDeregistrationStatus implements Event {
 	static final int type = Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS;
-
+	
 	private int status;
 	private String information;
 	

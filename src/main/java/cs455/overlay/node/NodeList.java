@@ -1,6 +1,7 @@
 package cs455.overlay.node;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class NodeList {
@@ -29,35 +30,13 @@ public class NodeList {
 		for (NodeData n : nodes) {
 			sb.append(n.toString() + "\n");
 		}
+		sb.append("-NodeList End");
 		return sb.toString();
 	}
 	
 	public int getOpenID() {
 		//TODO: Check somewhere for the max # of spots available, probably before here
 		//at this point it would probably be assumed that it was open
-<<<<<<< HEAD
-		System.out.println(this);
-		
-		boolean found = true;
-		int id;
-		
-		do {
-			//generate a number
-			id = rng.nextInt(128);
-			
-			//check the array for it
-			for (NodeData nd : nodes)
-				if (nd.getID() == id)
-					found = false;
-			
-		} while (!found);
-		
-		return id;
-	}
-	
-	public boolean full() {
-		return nodes.size() < MAX_SIZE;
-=======
 		//System.out.println(this);
 		
 		boolean found = true;
@@ -90,9 +69,19 @@ public class NodeList {
 		}		
 		return -1;
 		
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 	}
 	
+	public NodeData get(int i) {
+		return nodes.get(i);
+	}
+	
+	public int size() {
+		return nodes.size();
+	}
+	
+	public void sort() {
+		Collections.sort(nodes);
+	}
 	
 	
 }

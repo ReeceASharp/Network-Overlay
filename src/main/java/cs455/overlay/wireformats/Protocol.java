@@ -3,8 +3,8 @@ package cs455.overlay.wireformats;
 public final class Protocol {
 	
 	//Pass to Interactive Command Parser to set the help command returns
-	public static final int MESSAGING = 0;
-	public static final int REGISTRY = 1;
+	public static final int MESSAGING = 1;
+	public static final int REGISTRY = 2;
 	
 	//Control message values
 	public static final int OVERLAY_NODE_SENDS_REGISTRATION = 2;

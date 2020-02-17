@@ -17,11 +17,7 @@ public class EventFactory {
 	public Event createEvent(byte[] marshalledBytes) throws IOException {
 		ByteArrayInputStream bin = new ByteArrayInputStream(marshalledBytes);
 		int value = ByteBuffer.wrap( marshalledBytes ).getInt();
-<<<<<<< HEAD
-		System.out.printf("EventFactory::createEvent: Value = %d%n", value);
-=======
 		//System.out.printf("EventFactory::createEvent: Value = %d%n", value);
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		
 		switch (value) {
 			case 2:

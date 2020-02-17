@@ -7,10 +7,7 @@ import java.net.SocketException;
 
 import cs455.overlay.node.Node;
 import cs455.overlay.wireformats.Event;
-<<<<<<< HEAD
-=======
 import cs455.overlay.wireformats.EventFactory;
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 
 
 public class TCPReceiverThread implements Runnable {
@@ -50,11 +47,7 @@ public class TCPReceiverThread implements Runnable {
 				byte[] incomingMessage = new byte[dataLength];
 				dataIn.readFully(incomingMessage, 0, dataLength);	
 				
-<<<<<<< HEAD
-				Event e = node.getFactory().createEvent(incomingMessage);
-=======
 				Event e = EventFactory.getInstance().createEvent(incomingMessage);
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 				
 				
 				//received message, decode
@@ -66,9 +59,10 @@ public class TCPReceiverThread implements Runnable {
 				System.out.println("TCPReceiverThread::run::socketException: " + se.getMessage());
 				break;
 			} catch (IOException ioe) {
-				System.out.printf("TCPReceiverThread::run::IOException: '%s' '%s'%n", ioe.toString(), ioe.getMessage());
-				//TODO: at this point the thread should call the node to remove this node from its registry
-				ioe.printStackTrace();
+				System.out.println("Socket unexpectedly closed, no longer listening to: " + socket.getRemoteSocketAddress());
+				//System.out.printf("TCPReceiverThread::run::IOException: '%s' '%s'%n", ioe.toString(), ioe.getMessage());
+				//TODO: at this point the thread should call the node to remove this data from its registry
+				//ioe.printStackTrace();
 				break;
 			}
 		}
@@ -77,6 +71,7 @@ public class TCPReceiverThread implements Runnable {
 			dataIn.close();
 			socket.close();
 		} catch (IOException e) {
+			System.out.println("Attempting to close Pipes");
 			e.printStackTrace();
 		}
 		

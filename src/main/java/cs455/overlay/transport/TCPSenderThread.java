@@ -9,19 +9,20 @@ public class TCPSenderThread implements Runnable {
 	private DataOutputStream dout;
 	private byte[] msg;
 	
-	public TCPSenderThread(Socket socket, byte[] msg) throws IOException {
+	public TCPSenderThread(Socket socket, byte[] msg) {
 		this.socket = socket;
-		dout = new DataOutputStream(this.socket.getOutputStream());
 		this.msg = msg;
 	}
 
 	@Override
 	public void run() {
 		//using the established pipeline to send information
-		System.out.println("TCPSender::run::sending_to:" + socket);
+		//System.out.println("TCPSender::run::sending_to:" + socket);
 		
 		int msgLength = msg.length;
 		try {
+			dout = new DataOutputStream(this.socket.getOutputStream());
+			
 			//write message to buffer
 			dout.writeInt(msgLength);
 			dout.write(msg, 0, msgLength);
@@ -30,7 +31,7 @@ public class TCPSenderThread implements Runnable {
 		} catch (IOException e) {
 			System.out.println("TCPSender::run::writing_to_output: " + e);
 		}
-		System.out.println("TCPSenderThread done");
+		//System.out.println("TCPSenderThread done");
 	}
 
 }

@@ -13,10 +13,12 @@ public class OverlayNodeSendsDeregistration implements Event {
 	
 	private String ip;
 	private int port;
+	private int id;
 	
-	public OverlayNodeSendsDeregistration(String ip, int port) {
+	public OverlayNodeSendsDeregistration(String ip, int port, int id) {
 		this.ip = ip;
 		this.port = port;
+		this.id = id;
 	}
 	
 	public OverlayNodeSendsDeregistration(byte[] marshalledBytes) throws IOException {
@@ -39,6 +41,7 @@ public class OverlayNodeSendsDeregistration implements Event {
 		//retrieve port
 		port = din.readInt();
 		//System.out.printf("OverlayNodeSendsDregistration::IP: '%s', Port: '%d'%n", ip, port);
+		id = din.readInt();
 		
 		//close wrapper streams
 		baInputStream.close();
@@ -50,21 +53,11 @@ public class OverlayNodeSendsDeregistration implements Event {
 
 	@Override
 	public int getType() {
-<<<<<<< HEAD
-		return Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION;
-=======
 		return type;
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 	}
 
 	@Override
 	public byte[] getBytes() {
-<<<<<<< HEAD
-		
-		
-		// TODO Auto-generated method stub
-		return null;
-=======
 		byte[] marshalledBytes = null;
 		
 		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
@@ -81,6 +74,9 @@ public class OverlayNodeSendsDeregistration implements Event {
 			
 			//write port
 			dout.writeInt(port);
+			
+			//write registry ID
+			dout.writeInt(id);
 			
 			//ensure all is written before the buffer is converted to a byte array
 			dout.flush();
@@ -106,7 +102,6 @@ public class OverlayNodeSendsDeregistration implements Event {
 
 	public int getPort() {
 		return port;
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 	}
 
 }

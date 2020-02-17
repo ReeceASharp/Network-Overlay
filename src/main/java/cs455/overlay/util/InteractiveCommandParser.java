@@ -64,24 +64,16 @@ public class InteractiveCommandParser implements Runnable {
 		switch (type) {
 		case Protocol.MESSAGING:
 			System.out.println("parseMessaging::invalid Command");
-<<<<<<< HEAD
-			//TODO: update command list to be a string[]
-=======
 			System.out.println("Available Commands: ");
 			for (String s : Commands.MESSAGING_COMMANDS)
 				System.out.println(s);
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 			break;
 		case Protocol.REGISTRY:
 			System.out.println("parseRegistry::invalid Command");
-<<<<<<< HEAD
-			//TODO: update command list to be a string[]
-=======
 			System.out.println("Available Commands: ");
 			for (String s : Commands.REGISTER_COMMANDS)
 				System.out.println(s);
 			
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 			break;
 		}
 	}

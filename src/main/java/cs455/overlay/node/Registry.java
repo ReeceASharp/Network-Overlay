@@ -3,141 +3,31 @@ package cs455.overlay.node;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+
+import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
-import cs455.overlay.wireformats.Protocol;
-import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
-import cs455.overlay.wireformats.Event;
-<<<<<<< HEAD
-import cs455.overlay.wireformats.EventFactory;
-=======
-import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
-import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
+import cs455.overlay.wireformats.*;
 
 public class Registry implements Node {
-<<<<<<< HEAD
 
-	//private static StatisticsCollectorAndDisplay statDisplay;
-
-
-	NodeList nodeList;
-
-
-	private EventFactory factory;
-
-	private byte[] serverIP;
-	private int serverPort;
-
-
-	public Registry() { 
-		factory = EventFactory.getInstance();
-		nodeList = new NodeList();
-	}
-
-	public static void main(String[] args) throws IOException {
-		Registry node = new Registry();
-		
-		int port = Integer.parseInt(args[0]);
-		
-		
-		InetAddress ip = InetAddress.getLocalHost();
-		String host = ip.getHostName();
-		
-		
-		System.out.printf("Host: %s, Port: %s, IPA: %s, HostIP: %s%n",
-				host, port, ip.getAddress(), ip.getHostAddress());
-
-		
-		
-		//start the server thread that will listen for clients wanting to connect
-		Thread server = new Thread(new TCPServerThread(node, port));
-		server.start();
-
-		//start the interactive client
-		Thread parser = new Thread(new InteractiveCommandParser(Protocol.REGISTRY, node));
-		parser.start();
-
-		//System.out.println("Registry::main::exiting");
-	}
-=======
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
-
-<<<<<<< HEAD
-	@Override
-	public void onEvent(Event e, Socket socket) {
-		switch(e.getType()) {
-		case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
-			try {
-				nodeRegistration(e, socket);
-			} catch (IOException e1) {
-				System.out.printf("Failed nodeRegistration: '%s'%n", e.toString());
-				e1.printStackTrace();
-			}
-			break;
-		case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
-			nodeDeRegistration();
-			break;
-		case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
-			nodeSetupStatus();
-			break;
-		case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
-			nodeTaskFinished();
-			break;
-		case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
-			nodeReportTraffic();
-			break;
-		default:
-			System.err.printf("Registry::onEvent::invalid control message: %d%n", e.getType());
-			break;
-=======
-	// used in the check during registry
-	public class nodeResponse {
-		public int status;
+	//package data to pass around easier around class, boolean is whether register/deregister was successful
+	private class NodeResponse {
 		public String message;
+		public boolean status;
 
-		public nodeResponse(int status, String message) {
+		public NodeResponse(boolean status, String message) {
 			this.status = status;
 			this.message = message;
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		}
+
+		public String getMessage() { return message; }
+		public boolean successful() { return status; }
 	}
 
-<<<<<<< HEAD
-	@Override
-	public void onCommand(String[] command) {
-		System.out.printf("Registry::onCommand:: '%s'%n", command.toString());
-
-		switch (command[0]) {
-		case "list-messaging-nodes":
-			listNodes();
-			break;
-		case "setup-overlay":
-			setupOverlay(command);
-			break;
-		case "list-routing-tables":
-			break;
-		case "start":
-			
-			break;
-		default:
-			System.out.println("Should never reach this");
-		}	
-
-=======
 	// private static StatisticsCollectorAndDisplay statDisplay;
-
-	private NodeList nodeList;
-	// private EventFactory factory;
-
-	private String serverIP;
-	private int serverPort;
-
-	public Registry() {
-		// factory = EventFactory.getInstance();
-		nodeList = new NodeList();
-	}
 
 	public static void main(String[] args) throws IOException {
 		Registry node = new Registry();
@@ -159,20 +49,133 @@ public class Registry implements Node {
 
 	}
 
+	//private TCPConnectionsCache cache;
+	//private TCPServerThread server;
+	private NodeList nodeList;
+	private String serverIP;					//
+	private int serverPort;
+	private ArrayList<RoutingTable> tables;		//
+
+	public Registry() {
+		nodeList = new NodeList();
+		tables = new ArrayList<>();
+	}
+
+	/*
 	@Override
-	public void onEvent(Event e, Socket socket) {
+	public TCPConnectionsCache getCache() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+	*/
+
+	@Override
+	public String getServerIP() {
+		return serverIP;
+	}
+
+	@Override
+	public int getServerPort() {
+		return serverPort;
+	}
+
+	private void listNodes() {
+		System.out.println(nodeList);
+	}
+
+	// node wants to deregister
+	private void nodeDeregistration(Event e, Socket socket) throws IOException {
+		System.out.println("RECEIVED NODE DEREGISTRATION REQUEST");
+
+		OverlayNodeSendsDeregistration deregistration = (OverlayNodeSendsDeregistration) e;
+		NodeResponse response = validateDeregister(deregistration.getIP(), deregistration.getPort(), 
+				socket);
+		
+		int index;
+		if (response.successful()) {
+			index = nodeList.contains(deregistration.getIP(), deregistration.getPort());
+			System.out.printf("Success: Found node: '%s'%n", nodeList.get(index));
+		} else {
+			index = -1;
+		}	
+		byte[] marshalledBytes = new RegistryReportsDeregistrationStatus(index, response.getMessage()).getBytes();
+		
+		
+		sendMessage(socket, marshalledBytes);
+	}
+
+	// node wants to register with the registry
+	private void nodeRegistration(Event e, Socket socket) throws IOException {
+		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
+
+		// check if Registry is fill, and that the node is accurate
+		NodeResponse response = validateRegister(registration.getIP(), registration.getPort(), 
+				socket);
+		
+		int id;
+		if (response.successful()) {
+			id = nodeList.getOpenID();
+			nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), id, socket));
+		} else
+			id = -1;
+			
+		// build response to send across socket
+		byte[] marshalledBytes = new RegistryReportsRegistrationStatus(id, response.getMessage()).getBytes();
+		
+		sendMessage(socket, marshalledBytes);
+	}
+
+	private void nodeReportTraffic() {
+		System.out.println("nodeReportTraffic()");
+	}
+
+	// node is reporting its status
+	private void nodeSetupStatus() {
+		System.out.println("nodeSetupStatus");
+		//save to a data structure that keeps track of
+	}
+
+	private void nodeTaskFinished() {
+		System.out.println("nodeTaskFinished");
+	}
+
+	@Override
+	public void onCommand(String[] command) {
+		System.out.print("Registry::onCommand::Command_Length:" + command.length + ": ");
+		for (String s : command)
+			System.out.print("'" + s + "' ");
+		System.out.println();
+
+		switch (command[0]) {
+		case "list-messaging-nodes":
+			listNodes();
+			break;
+		case "setup-overlay":
+			setupOverlay(command);
+			break;
+		case "list-routing-tables":
+			
+			break;
+		case "start":
+
+			break;
+		default:
+			System.out.println("Should never reach this");
+		}
+
+	}
+
+	@Override
+	public void onEvent(Event e, Socket socket)  {
+		
+		try {
 		switch (e.getType()) {
 		case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
-			try {
-				nodeRegistration(e, socket);
-			} catch (IOException e1) {
-				System.out.printf("Failed nodeRegistration: '%s'%n", e.toString());
-				e1.printStackTrace();
-			}
+			nodeRegistration(e, socket);
 			break;
 		case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
-			System.out.println("Node Deregistration");
-			nodeDeregistration(e);
+			nodeDeregistration(e, socket);
 			break;
 		case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
 			nodeSetupStatus();
@@ -187,226 +190,18 @@ public class Registry implements Node {
 			System.err.printf("Registry::onEvent::invalid control message: %d%n", e.getType());
 			break;
 		}
-	}
-
-	@Override
-	public void onCommand(String[] command) {
-		System.out.print("Registry::onCommand::Commands (len" + command.length + ": ");
-		for (String s : command)
-			System.out.print("'" + s + "' ");
-		System.out.println();
-
-		switch (command[0]) {
-		case "list-messaging-nodes":
-			listNodes();
-			break;
-		case "setup-overlay":
-			setupOverlay(command);
-			break;
-		case "list-routing-tables":
-			break;
-		case "start":
-
-			break;
-		default:
-			System.out.println("Should never reach this");
+		} catch (IOException ioe) {
+			System.out.println("Error handling Message: ");
+			ioe.printStackTrace();
 		}
-
-	}
-
-	// node wants to register with the registry
-	private void nodeRegistration(Event e, Socket socket) throws IOException {
-		// check if node already exists
-		String message = "rer";
-
-		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
-		// System.out.printf("Registry::nodeRegistration::IP: '%s, Port: %d%n",
-		// registration.getIP(), registration.getPort());
-		// System.out.printf("Registry::nodeRegistration::IP: '%s, Port: %d%n",
-		// e.getIP(), e.getPort());
-
-		// check if Registry is fill, and that the node is accurate
-		int status = checkNode(registration.getIP(), registration.getPort(), socket);
-
-		// if (status >= -1)
-		nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), status));
-
-		// System.out.println(nodeList);
-
-		// respond with a message
-		byte[] marshalledBytes = new RegistryReportsRegistrationStatus(status, message).getBytes();
-
-		// TODO: possibly change to anonymous thread
-		// System.out.println("Sending to: " + socket);
-
-		sendMessage(socket, marshalledBytes);
-
 	}
 
 	private void sendMessage(Socket socket, byte[] marshalledBytes) throws IOException {
 		new Thread(new TCPSenderThread(socket, marshalledBytes)).start();
 	}
 
-	private int checkNode(String ip, int port, Socket socket) {
-		// TEST: This doesn't work on my router for some reason, but is completely file
-		// on school computers
-		/*
-		 * if (!(payload.getIP()).equals(socket.getInetAddress().getHostAddress())) {
-		 * System.out.println("Socket IP doesn't match"); //return ; }
-		 */
-
-		// check that there's open space for it
-		if (!nodeList.full()) {
-			System.out.println("nodeList is full (128 inside already");
-			return -1;
-		}
-
-		// check that it isn't already inside
-		if (nodeList.contains(ip, port) > -1) {
-			System.out.println("Contains value");
-			return -1;
-		}
-
-		// they're unequal
-		return nodeList.getOpenID();
-	}
-
-	// node wants to deregister
-	private void nodeDeregistration(Event e) {
-		System.out.println("RECEIVED NODE REGISTRATION REQUEST");
-		OverlayNodeSendsDeregistration deregister = (OverlayNodeSendsDeregistration) e;
-		int index = nodeList.contains(deregister.getIP(), deregister.getPort());
-		//found in list
-		if (index > -1) {
-			System.out.println("Found node!");
-			//removeNode(
-		}
-		else {
-			System.out.println("Node not inside");
-		}
-		//not found, build an error message
-		
-		
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
-	}
-
-<<<<<<< HEAD
-	@Override
-	public EventFactory getFactory() {
-		return factory;
-	}
-
-	//node wants to register with the registry
-	private void nodeRegistration(Event e, Socket socket) throws IOException {
-		//check if node already exists
-		String message = "rer";
-		
-		
-		
-		
-		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
-		System.out.printf("Registry::nodeRegistration::IP: '%s, Port: %d%n", registration.getIP(), registration.getPort());
-		//System.out.printf("Registry::nodeRegistration::IP: '%s, Port: %d%n", e.getIP(), e.getPort());
-		
-
-		//check if Registry is fill, and that the node is accurate
-		int status = checkNode(registration, socket);
-
-		if (status >= -1)
-			nodeList.insertNode(new NodeData(registration.getIP(), registration.getPort(), status));
-
-		System.out.println(nodeList);
-
-		//respond with a message
-		byte[] marshalledBytes = new RegistryReportsRegistrationStatus(status, message).getBytes();
-
-		//TODO: possibly change to anonymous thread
-		System.out.println("Sending to: " + socket);
-		Thread sender = new Thread(new TCPSenderThread(socket, marshalledBytes));
-		sender.start();
-
-
-		sendMessage(socket);
-
-	}
-
-
-
-	private void sendMessage(Socket socket) {
-
-	}
-
-	private int checkNode(OverlayNodeSendsRegistration payload, Socket socket) {
-		//System.out.println("Registry::checkNode");
-		//check that the payload IP matches the IP address it came from
-		System.out.println("Registry::checkNode::" + socket);
-		System.out.println("Registry::checkNode" + payload.getIP() + " vs. " + socket.getInetAddress().getAddress());
-
-		
-		
-		if (!(new String(payload.getIP()).equals(socket.getLocalAddress().getHostAddress()))) {
-			return -1;
-		}
-
-		//check that there's open space for it
-
-
-		//check that it isn't already inside
-
-		return -1;
-	}
-
-	//node wants to deregister
-	private void nodeDeRegistration() {
-
-	}
-
-	//node is reporting its status
-=======
-	// node is reporting its status
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
-	private void nodeSetupStatus() {
-
-	}
-
-	private void nodeTaskFinished() {
-
-	}
-
-	private void nodeReportTraffic() {
-
-<<<<<<< HEAD
-
-=======
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
-	}
-
 	private void setupOverlay(String[] args) {
-
-	}
-
-	private void listNodes() {
-		System.out.println(nodeList);
-<<<<<<< HEAD
-	}
-
-	//TODO: may need to synchronize this, as its setters and getters may be accessed simultaneously
-	@Override
-	public void updateServerInfo(byte[] ip, int port) {
-		serverIP = ip;
-		serverPort = port;
-	}
-
-	@Override
-	public byte[] getServerIP() {
-		return serverIP;
-	}
-
-	@Override
-	public int getServerPort() {
-		return serverPort;
-=======
->>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
+		//get parameter, and hopefully n <= (2^n)-1
 	}
 
 	// TODO: may need to synchronize this, as its setters and getters may be
@@ -417,14 +212,44 @@ public class Registry implements Node {
 		serverPort = port;
 	}
 
-	@Override
-	public String getServerIP() {
-		return serverIP;
+	private NodeResponse validateDeregister(String ip, int port, Socket socket) {
+
+		//make sure node is in registry to be taken out
+		if (nodeList.contains(ip, port) == -1) {
+			return new NodeResponse(false, "Error: MessagingNode isn't in overlay.");
+		}
+
+		if (!(ip.equals(socket.getInetAddress().getHostAddress()))) {
+			
+			System.out.println("Error: connection IP doesn't match payload IP"); //return ; }
+			return new NodeResponse(false, "Error: Connection IP doesn't match payload IP. ");
+		}
+
+		return new NodeResponse(true, "Success: Node successfully deregistered.");
 	}
 
-	@Override
-	public int getServerPort() {
-		return serverPort;
+	private NodeResponse validateRegister(String ip, int port, Socket socket) {
+		// NOTE: This doesn't work on my local router for some reason, but is completely fine
+		// on the school network
+		/*
+		 * if (!(ip.equals( socket.getInetAddress().getHostAddress() ))) {
+		 * System.out.printf("Socket IP doesn't match: '%s' vs '%s'%n", ip,
+		 * socket.getInetAddress().getHostAddress()); return new NodeResponse(false,
+		 * "Error: Socket IP doesn't match payload IP"); }
+		 */
+
+
+		// make sure registry isn't already full
+		if (!nodeList.full()) 
+			return new NodeResponse(false, "Error: No available space inside Registry for registration.");
+
+		// make sure node isn't already in registry
+		if (nodeList.contains(ip, port) > -1) 
+			return new NodeResponse(false, "Error: Registry already contains a node with this IP:Port combination.");
+
+		//Node can be added to registry
+		return new NodeResponse(true, String.format("Success: MesssagingNode was successfully added. There are currently (%s) nodes"
+				+ " in the system.", nodeList.size() + 1));
 	}
 
 }
