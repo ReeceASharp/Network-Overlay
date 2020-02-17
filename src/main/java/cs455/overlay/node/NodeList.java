@@ -83,5 +83,12 @@ public class NodeList {
 		Collections.sort(nodes);
 	}
 	
+	public boolean readyToStart() {
+		for (NodeData nd : nodes)
+			if (!nd.ready())
+				return false;
+		return true;
+	}
+	
 	
 }

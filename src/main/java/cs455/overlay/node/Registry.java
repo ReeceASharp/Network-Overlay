@@ -27,8 +27,6 @@ public class Registry implements Node {
 		public boolean successful() { return status; }
 	}
 
-	// private static StatisticsCollectorAndDisplay statDisplay;
-
 	public static void main(String[] args) throws IOException {
 		Registry node = new Registry();
 
@@ -49,26 +47,18 @@ public class Registry implements Node {
 
 	}
 
-	//private TCPConnectionsCache cache;
-	//private TCPServerThread server;
+	// private static StatisticsCollectorAndDisplay statDisplay;
 	private NodeList nodeList;
 	private String serverIP;					//
 	private int serverPort;
-	private ArrayList<RoutingTable> tables;		//
+	private ArrayList<RoutingTable> tables;		//keep track of RoutingTables being sent to MessagingNodes
+	private boolean ready;
 
 	public Registry() {
 		nodeList = new NodeList();
 		tables = new ArrayList<>();
+		ready = false;
 	}
-
-	/*
-	@Override
-	public TCPConnectionsCache getCache() {
-
-		// TODO Auto-generated method stub
-		return null;
-	}
-	*/
 
 	@Override
 	public String getServerIP() {
@@ -82,6 +72,15 @@ public class Registry implements Node {
 
 	private void listNodes() {
 		System.out.println(nodeList);
+	}
+	
+	private void listTables() {
+		System.out.println("Registry::listTables");
+		for (RoutingTable rt : tables) {
+			System.out.println(rt);
+		}
+		
+		System.out.println(tables);
 	}
 
 	// node wants to deregister
@@ -155,10 +154,10 @@ public class Registry implements Node {
 			setupOverlay(command);
 			break;
 		case "list-routing-tables":
-			
+			listTables();
 			break;
 		case "start":
-
+			
 			break;
 		default:
 			System.out.println("Should never reach this");
@@ -178,6 +177,7 @@ public class Registry implements Node {
 			nodeDeregistration(e, socket);
 			break;
 		case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
+			//TODO: keep track of whether each node's setup success was received inside nodeData?
 			nodeSetupStatus();
 			break;
 		case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
@@ -241,13 +241,13 @@ public class Registry implements Node {
 
 		// make sure registry isn't already full
 		if (!nodeList.full()) 
-			return new NodeResponse(false, "Error: No available space inside Registry for registration.");
+			return new NodeResponse(false, "Error: MessagingNode was not added. No available space inside Registry for registration.");
 
 		// make sure node isn't already in registry
 		if (nodeList.contains(ip, port) > -1) 
-			return new NodeResponse(false, "Error: Registry already contains a node with this IP:Port combination.");
+			return new NodeResponse(false, "Error: MessagingNode was not Added. Registry already contains a node with this IP:Port combination.");
 
-		//Node can be added to registry
+		//Node can be added to registry, but append increment size before as this is generated it's added
 		return new NodeResponse(true, String.format("Success: MesssagingNode was successfully added. There are currently (%s) nodes"
 				+ " in the system.", nodeList.size() + 1));
 	}
