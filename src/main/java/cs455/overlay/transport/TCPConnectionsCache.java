@@ -28,7 +28,11 @@ public class TCPConnectionsCache {
 		StringBuilder sb = new StringBuilder();
 		sb.append("TCPConnectionsCache: \n");
 		sb.append(sockets.toString());
+<<<<<<< HEAD
 		sb.append("\n***\n");
+=======
+		sb.append("\n***");
+>>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		return sb.toString();
 	}
 

@@ -21,6 +21,7 @@ public class RegistryReportsRegistrationStatus implements Event {
 	}
 
 	public RegistryReportsRegistrationStatus(byte[] marshalledBytes) throws IOException {
+<<<<<<< HEAD
 		System.out.println("RegistryReportsRegistrationStatus::ctor");
 		
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
@@ -31,6 +32,19 @@ public class RegistryReportsRegistrationStatus implements Event {
 		
 		//get the status (int)
 		status = din.readInt();
+=======
+		//System.out.println("RegistryReportsRegistrationStatus::ctor");
+		
+		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
+		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
+		
+		//remove the type
+		din.readInt();
+		
+		//get the status (int)
+		status = din.readInt();
+		
+>>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		//get the information string
 		int infoLength = din.readInt();
 		byte[] infoBytes = new byte[infoLength];
@@ -50,6 +64,11 @@ public class RegistryReportsRegistrationStatus implements Event {
 
 	@Override
 	public byte[] getBytes() {
+<<<<<<< HEAD
+=======
+		System.out.printf("PRINTING CLASS NAME: %s, %s%n", this.getClass().getSimpleName(), this.getClass());
+		
+>>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		//put into a buffer
 		byte[] message = null;
 		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();

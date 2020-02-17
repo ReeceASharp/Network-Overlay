@@ -35,6 +35,7 @@ public class NodeList {
 	public int getOpenID() {
 		//TODO: Check somewhere for the max # of spots available, probably before here
 		//at this point it would probably be assumed that it was open
+<<<<<<< HEAD
 		System.out.println(this);
 		
 		boolean found = true;
@@ -56,6 +57,40 @@ public class NodeList {
 	
 	public boolean full() {
 		return nodes.size() < MAX_SIZE;
+=======
+		//System.out.println(this);
+		
+		boolean found = true;
+		int id;
+		
+		do {
+			//generate a number
+			id = rng.nextInt(128);
+			
+			//check the array for it
+			for (NodeData nd : nodes)
+				if (nd.getID() == id)
+					found = false;
+			
+		} while (!found);
+		
+		return id;
+	}
+	
+	public boolean full() {
+		return nodes.size() < MAX_SIZE;
+	}
+	
+	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
+	//as the port allocation on the server is dynamic
+	public int contains(String ip, int port) {
+		for (int i = 0; i < nodes.size(); i++) {
+			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
+				return i;
+		}		
+		return -1;
+		
+>>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 	}
 	
 	

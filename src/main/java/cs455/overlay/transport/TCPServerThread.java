@@ -33,10 +33,15 @@ public class TCPServerThread implements Runnable {
 	public void run() {
 		try {
 			serverSocket = new ServerSocket(port);
+<<<<<<< HEAD
+=======
+			addr = InetAddress.getLocalHost();
+>>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		} catch(IOException e) {
 			System.out.println("TCPServerThread::run::creating_the_socket:: " + e);
 		}
 		
+<<<<<<< HEAD
 		
 		
 		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
@@ -68,6 +73,43 @@ public class TCPServerThread implements Runnable {
 		} catch (IOException e) {
 			System.out.println("TCPServerThread::run::error_blocking_for_client:: " + e);
 		}  
+=======
+		//The serverSocket doesn't have an IP associated, only a port, need to query this host for the IP it's running on
+		
+		
+		
+		//update the referenced node with the details of the serverSocket, so it can send its details to the Registry
+		node.updateServerInfo(addr.getHostAddress(), serverSocket.getLocalPort());
+		//System.out.printf("Address: %s, Port: %s %n", serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
+		System.out.printf("TCPServer on %s: IP:'%s'%n", serverSocket, node.getServerIP());
+		//listen for new connections to this program
+		//TODO: look at interrupting from above
+		
+		try {
+			while (true) {
+					//System.out.println("TCPServerThread::run::blocking");
+					Socket clientSocket = serverSocket.accept();
+					String value = clientSocket.getLocalAddress().getHostAddress();
+					
+					//System.out.println("VALUE: " + value);
+					
+					System.out.printf("Received Connection: %s%n", clientSocket);
+					
+					cache.saveConnection(clientSocket);
+					System.out.println(cache.toString());
+					
+					//spawn a thread to handle that specific connection, 
+					new Thread(new TCPReceiverThread(clientSocket, node)).start();
+				} 
+	
+		} catch (SocketException e) {
+			System.out.println("TCPServerThread::run::error::socketClosed::" + e);
+		} catch (IOException e) {
+			System.out.println("TCPServerThread::run::error_blocking_for_client:: " + e);
+		}  
+		
+		
+>>>>>>> branch 'master' of https://github.com/ReeceASharp/cs455_a1
 		
 		
 		System.out.println("TCPServerThread::run::exiting");
