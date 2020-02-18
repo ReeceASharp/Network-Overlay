@@ -105,7 +105,7 @@ public class Registry implements Node {
 	}
 
 	// node wants to register with the registry
-	private void nodeRegistration(Event e, Socket socket) throws IOException {
+	private synchronized void nodeRegistration(Event e, Socket socket) throws IOException {
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
 
 		// check if Registry is fill, and that the node is accurate
@@ -146,7 +146,7 @@ public class Registry implements Node {
 			System.out.print("'" + s + "' ");
 		System.out.println();
 
-		switch (command[0]) {
+		switch (command[0].toLowerCase()) {
 		case "list-messaging-nodes":
 			listNodes();
 			break;
@@ -202,6 +202,12 @@ public class Registry implements Node {
 
 	private void setupOverlay(String[] args) {
 		//get parameter, and hopefully n <= (2^n)-1
+		System.out.println("Registry::setupOverlay::STARTING UP");
+		
+		//test if the second parameter is valid
+		
+		//start the sendout if necessary
+		
 	}
 
 	// TODO: may need to synchronize this, as its setters and getters may be
@@ -238,7 +244,6 @@ public class Registry implements Node {
 		 * "Error: Socket IP doesn't match payload IP"); }
 		 */
 
-
 		// make sure registry isn't already full
 		if (!nodeList.full()) 
 			return new NodeResponse(false, "Error: MessagingNode was not added. No available space inside Registry for registration.");
@@ -247,9 +252,17 @@ public class Registry implements Node {
 		if (nodeList.contains(ip, port) > -1) 
 			return new NodeResponse(false, "Error: MessagingNode was not Added. Registry already contains a node with this IP:Port combination.");
 
+		//TODO: Fix allocation of string, as this is done out of sync
 		//Node can be added to registry, but append increment size before as this is generated it's added
 		return new NodeResponse(true, String.format("Success: MesssagingNode was successfully added. There are currently (%s) nodes"
 				+ " in the system.", nodeList.size() + 1));
+	}
+	
+	
+	//when each message comes through it checks to see if the other nodes are ready to go
+	//
+	public void setReady() {
+		ready = true;
 	}
 
 }

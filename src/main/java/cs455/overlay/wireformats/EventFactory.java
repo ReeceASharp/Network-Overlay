@@ -39,7 +39,7 @@ public class EventFactory {
 			case 10:
 				return new OverlayNodeReportsTaskFinished(marshalledBytes);
 			case 11:
-				return new RegistryRequestsTrafficSummary(marshalledBytes);
+				return new RegistryRequestsTrafficSummary();
 			case 12:
 				return new OverlayNodeReportsTrafficSummary(marshalledBytes);
 			default:

@@ -8,6 +8,7 @@ import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
+import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
@@ -110,7 +111,6 @@ public class MessagingNode implements Node {
 		sendMessage(registrySocket, message);
 
 		return true;
-		
 	}
 	
 
@@ -152,14 +152,16 @@ public class MessagingNode implements Node {
 
 
 	private void startPacketSending(Event e) {
-		// TODO Auto-generated method stub
 		System.out.println("MessagingNode::startPacketSending");
 	}
 
 
 	private void routingSetup(Event e) {
-		// TODO Auto-generated method stub
 		System.out.println("MessagingNode::routingSetup");
+		RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) e;
+		//give the message data to the 
+		table = new RoutingTable(manifest.getRoutingIPs(), manifest.getRoutingPorts(), manifest.getRoutingIDs());
+		
 	}
 
 
@@ -195,8 +197,9 @@ public class MessagingNode implements Node {
 		System.out.println();
 		
 		
-		switch (command[0]) {
-		case "print-counter-and-diagnostics":
+		switch (command[0].toLowerCase()) {
+		case "print-counters-and-diagnostics":
+			System.out.println("PRINTING");
 			//TODO
 			break;
 		case "exit-overlay":

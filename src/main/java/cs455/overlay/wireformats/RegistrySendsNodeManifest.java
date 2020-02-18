@@ -104,6 +104,22 @@ public class RegistrySendsNodeManifest implements Event {
 		
 		return message;
 	}
+	
+	public int getSize() {
+		return size;
+	}
+	
+	public String[] getRoutingIPs() {
+		return routingIPs;
+	}
+	
+	public int[] getRoutingPorts() {
+		return routingPorts;
+	}
+	
+	public int[] getRoutingIDs() {
+		return routingIDs;
+	}
 
 }
 
