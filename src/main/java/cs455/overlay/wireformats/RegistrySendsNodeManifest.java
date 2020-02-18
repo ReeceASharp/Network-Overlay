@@ -8,23 +8,17 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import cs455.overlay.routing.RoutingEntry;
+
 public class RegistrySendsNodeManifest implements Event {
 	public static final int type = Protocol.REGISTRY_SENDS_NODE_MANIFEST;
 	
-	int size;
-	String[] routingIPs;
-	int[] routingPorts;
-	int[] routingIDs;
+	RoutingEntry[] nodes;
 	int[] knownIDs;
 
-	public RegistrySendsNodeManifest(String[] routingIPs, int[] routingPorts, int[] routingIDs, int[] knownIDs) {
-		this.routingIPs = routingIPs;
-		this.routingPorts = routingPorts;
-		this.routingIDs = routingIDs;
+	public RegistrySendsNodeManifest(RoutingEntry[] nodes, int[] knownIDs) {
+		this.nodes = nodes;
 		this.knownIDs = knownIDs;
-		size = routingIPs.length;			//protocols will always assume they have the same size
-		
-		
 	}
 	
 	public RegistrySendsNodeManifest(byte[] marshalledBytes) throws IOException {
@@ -34,12 +28,15 @@ public class RegistrySendsNodeManifest implements Event {
 		//remove the type
 		din.readInt();
 		
-		size = din.readInt();
+		int size = din.readInt();
+		
 		
 		//setup arrays
-		routingIPs = new String[size];
-		routingPorts = new int[size];
-		routingIDs = new int[size];
+		nodes = new RoutingEntry[size];
+		
+		String ip;
+		int port;
+		int id;
 		
 		
 		for (int i = 0; i < size; i++) {
@@ -47,15 +44,17 @@ public class RegistrySendsNodeManifest implements Event {
 			int infoLength = din.readInt();
 			byte[] infoBytes = new byte[infoLength];
 			din.readFully(infoBytes);
-			routingIPs[i] = new String(infoBytes);
+			ip = new String(infoBytes);
 			
 			//read in Port
-			routingPorts[i] = din.readInt();
+			port = din.readInt();
 			
 			//read in ID
-			routingIDs[i] = din.readInt();
+			id = din.readInt();
 			
-			System.out.printf("%s, %d, %d%n", routingIPs[i], routingPorts[i], routingIDs[i]);
+			
+			
+			System.out.printf("%s, %d, %d%n", ip, port, id);
 			
 		}
 		
@@ -88,20 +87,22 @@ public class RegistrySendsNodeManifest implements Event {
 			dout.writeInt(type);
 
 			//# of elements in routing table
-			dout.writeInt(routingIPs.length);
+			dout.writeInt(nodes.length);
 			
 			//for each element in the tentative routing table being sent
-			for (int i = 0; i < size; i++) {
+			for (int i = 0; i < nodes.length; i++) {
 				//write in IP
-				byte[] infoBytes = routingIPs[i].getBytes();
+				
+				
+				byte[] infoBytes = nodes[i].getIP().getBytes();
 				dout.writeInt(infoBytes.length);
 				dout.write(infoBytes);
 				
 				//read in Port
-				dout.writeInt(routingPorts[i]); 
+				dout.writeInt(nodes[i].getPort()); 
 				
 				//read in ID
-				dout.writeInt(routingIDs[i]);
+				dout.writeInt(nodes[i].getID());
 			}
 			
 			//read in list of known IDs
@@ -124,24 +125,13 @@ public class RegistrySendsNodeManifest implements Event {
 		return message;
 	}
 	
-	public int getSize() {
-		return size;
-	}
-	
-	public String[] getRoutingIPs() {
-		return routingIPs;
-	}
-	
-	public int[] getRoutingPorts() {
-		return routingPorts;
-	}
-	
-	public int[] getRoutingIDs() {
-		return routingIDs;
-	}
 	
 	public int[] getKnownIDs() {
 		return knownIDs;
+	}
+	
+	public RoutingEntry[] getNodes() {
+		return nodes;
 	}
 
 }

@@ -51,12 +51,11 @@ public class Registry implements Node {
 	private NodeList nodeList;
 	private String serverIP;					//
 	private int serverPort;
-	private ArrayList<RoutingTable> tables;		//keep track of RoutingTables being sent to MessagingNodes
+	private RoutingTable[] tables;		//keep track of RoutingTables being sent to MessagingNodes
 	private boolean ready;
 
 	public Registry() {
 		nodeList = new NodeList();
-		tables = new ArrayList<>();
 		ready = false;
 	}
 
@@ -215,9 +214,7 @@ public class Registry implements Node {
 
 	private void setupOverlay(String[] command) {
 		//get parameter, and hopefully n <= (2^n)-1
-		System.out.println("Registry::setupOverlay::STARTING UP");
 		if (command.length != 2) {
-			
 			System.out.println("Error: Invalid # of parameters, only specify a table size, " + command.length);
 			return;
 		}
@@ -228,8 +225,6 @@ public class Registry implements Node {
 		if (Math.pow(tableSize-1, 2) + 1 > nodeList.size() && tableSize > 0) {
 			System.out.println("Error: Invalid overlay size: " + tableSize);
 			return;
-		} else {
-			System.out.println("Sending out Routing Tables to MessagingNodes");
 		}
 		
 		nodeList.sort();
@@ -243,12 +238,13 @@ public class Registry implements Node {
 		RoutingTable temp;
 		byte[] marshalledBytes = null;
 		
+		
+		System.out.println("Sending out Routing Tables to MessagingNodes");
 		//send each table off to its respective node
 		for (int i = 0; i < nodeList.size(); i++) {
-			temp = tables.get(i);
+			temp = tables[i];
 			
-			marshalledBytes = new RegistrySendsNodeManifest(temp.getIpList(), 
-					temp.getPortList(), temp.getIdList(), knownIDs).getBytes();
+			marshalledBytes = new RegistrySendsNodeManifest(temp.getNodes(), knownIDs).getBytes();
 			
 			new Thread(new TCPSenderThread(nodeList.get(i).getSocket(),
 					marshalledBytes)).start();
@@ -257,10 +253,10 @@ public class Registry implements Node {
 	
 	//bases its information off of the data inside of nodeList
 	private void setupRoutingTables(int tableSize) {
+		tables = new RoutingTable[nodeList.size()];
 		
-		//cache so it doesn't query nodeList every time
 		for (int i = 0; i < nodeList.size(); i++) {
-			tables.add(RoutingTable.generateTable(nodeList, i, tableSize));
+			tables[i] = RoutingTable.generateTable(nodeList, i, tableSize);
 		}
 		
 	}

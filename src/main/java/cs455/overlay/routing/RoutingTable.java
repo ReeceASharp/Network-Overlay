@@ -4,36 +4,13 @@ import cs455.overlay.node.NodeData;
 import cs455.overlay.node.NodeList;
 
 public class RoutingTable {
-	private NodeData[] nodes;
+	//used on the client side
+	private RoutingEntry[] nodes;
 	
-	//raw arrays simplify the sending of the table from the Registry to the node
-	private String[] ipList;
-	private int[] portList;
-	private int[] idList;
+	//only used on the server side as it is easier to send this data
 	
-	public RoutingTable(String[] routingIPList, int[] routingPortList, int[] routingIDList) {
-		//preset 
-		nodes = new NodeData[routingIPList.length];
-		//ipList = routingIPList;
-		//portList = routingPortList;
-		//idList = routingIDList;
-		
-		
-		for (int i = 0; i < ipList.length; i++) {
-			nodes[i] = new NodeData(routingIPList[i], routingPortList[i], routingIDList[i], null);
-		}
-	}
-
-	public String[] getIpList() {
-		return ipList;
-	}
-
-	public int[] getPortList() {
-		return portList;
-	}
-
-	public int[] getIdList() {
-		return idList;
+	public RoutingTable(RoutingEntry[] nodes) {
+		this.nodes = nodes;
 	}
 	
 	
@@ -42,9 +19,7 @@ public class RoutingTable {
 		System.out.println("Generating Table for: " + nodeList.get(listOwnerIndex));
 		
 		int nodeListSize = nodeList.size();
-		String[] ipList = new String[tableSize];
-		int[] portList = new int[tableSize];
-		int[] idList = new int[tableSize];
+		RoutingEntry[] table = new RoutingEntry[tableSize];
 		
 		NodeData data;
 		//logic here
@@ -53,13 +28,14 @@ public class RoutingTable {
 			int index = (listOwnerIndex + (int)Math.pow(2, i)) % nodeListSize;
 			data = nodeList.get(index);
 	
+			
 			//set the array values
-			ipList[i] = data.getIP();
-			portList[i] = data.getPort();
-			idList[i] = data.getID();
+			table[i] = new RoutingEntry(data.getIP(), data.getPort(), data.getID());
 		}
 		
-		return new RoutingTable(ipList, portList, idList);
+		
+		
+		return new RoutingTable(table);
 	}
 	
 	@Override
@@ -74,6 +50,10 @@ public class RoutingTable {
 		
 		
 		return sb.toString();
+	}
+	
+	public RoutingEntry[] getNodes() {
+		return nodes;
 	}
 	
 }

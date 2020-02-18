@@ -153,7 +153,7 @@ public class MessagingNode implements Node {
 	private void routingSetup(Event e) {
 		RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) e;
 		//give the message data to the table
-		table = new RoutingTable(manifest.getRoutingIPs(), manifest.getRoutingPorts(), manifest.getRoutingIDs());
+		table = new RoutingTable(manifest.getNodes());
 		knownIDs = manifest.getKnownIDs();
 		
 		System.out.println(table);
