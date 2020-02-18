@@ -85,7 +85,7 @@ public class Registry implements Node {
 	}
 
 	// node wants to deregister
-	private void nodeDeregistration(Event e, Socket socket) throws IOException {
+	private synchronized void nodeDeregistration(Event e, Socket socket) throws IOException {
 		System.out.println("RECEIVED NODE DEREGISTRATION REQUEST");
 
 		OverlayNodeSendsDeregistration deregistration = (OverlayNodeSendsDeregistration) e;
@@ -109,6 +109,7 @@ public class Registry implements Node {
 
 	// node wants to register with the registry
 	private synchronized void nodeRegistration(Event e, Socket socket) throws IOException {
+		//System.out.println("INSIDE REGISTRATION");
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
 
 		// check if Registry is fill, and that the node is accurate
@@ -151,10 +152,12 @@ public class Registry implements Node {
 
 	@Override
 	public void onCommand(String[] command) {
+		/*
 		System.out.print("Registry::onCommand::Command_Length:" + command.length + ": ");
 		for (String s : command)
 			System.out.print("'" + s + "' ");
 		System.out.println();
+	 	*/
 
 		switch (command[0].toLowerCase()) {
 		case "list-messaging-nodes":
@@ -177,7 +180,7 @@ public class Registry implements Node {
 
 	@Override
 	public void onEvent(Event e, Socket socket)  {
-		
+		//System.out.println("Getting Event type");
 		try {
 		switch (e.getType()) {
 		case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
@@ -213,19 +216,28 @@ public class Registry implements Node {
 	private void setupOverlay(String[] command) {
 		//get parameter, and hopefully n <= (2^n)-1
 		System.out.println("Registry::setupOverlay::STARTING UP");
+		if (command.length != 2) {
+			
+			System.out.println("Error: Invalid # of parameters, only specify a table size, " + command.length);
+			return;
+		}
 		
 		//test if the second parameter is valid
 		int tableSize = Integer.parseInt(command[1]);
 		
-		if (tableSize * tableSize + 1 > nodeList.size() && tableSize > 0) {
+		if (Math.pow(tableSize-1, 2) + 1 > nodeList.size() && tableSize > 0) {
 			System.out.println("Error: Invalid overlay size: " + tableSize);
+			return;
+		} else {
+			System.out.println("Sending out Routing Tables to MessagingNodes");
 		}
 		
 		nodeList.sort();
 		
 		//setup tables
-		setupRoutingTables();
+		setupRoutingTables(tableSize);
 		
+		int[] knownIDs = nodeList.generateKnownIDs();
 		
 		//start the sendout if necessary
 		RoutingTable temp;
@@ -236,20 +248,19 @@ public class Registry implements Node {
 			temp = tables.get(i);
 			
 			marshalledBytes = new RegistrySendsNodeManifest(temp.getIpList(), 
-					temp.getPortList(), temp.getIdList()).getBytes();
+					temp.getPortList(), temp.getIdList(), knownIDs).getBytes();
 			
 			new Thread(new TCPSenderThread(nodeList.get(i).getSocket(),
 					marshalledBytes)).start();
 		}
-		
-		
 	}
 	
 	//bases its information off of the data inside of nodeList
-	private void setupRoutingTables() {
+	private void setupRoutingTables(int tableSize) {
 		
+		//cache so it doesn't query nodeList every time
 		for (int i = 0; i < nodeList.size(); i++) {
-			
+			tables.add(RoutingTable.generateTable(nodeList, i, tableSize));
 		}
 		
 	}
@@ -263,24 +274,27 @@ public class Registry implements Node {
 		serverPort = port;
 	}
 
-	private NodeResponse validateDeregister(String ip, int port, Socket socket) {
+	private synchronized NodeResponse validateDeregister(String ip, int port, Socket socket) {
 
 		//make sure node is in registry to be taken out
 		if (nodeList.contains(ip, port) == -1) {
 			return new NodeResponse(false, "Error: MessagingNode isn't in overlay.");
 		}
 
+		// NOTE: This doesn't work on my local router for some reason, but is completely fine
+		// on the school network
+		/*
 		if (!(ip.equals(socket.getInetAddress().getHostAddress()))) {
-			
 			System.out.printf("Socket IP doesn't match: '%s' vs '%s'%n", ip,
 					 socket.getInetAddress().getHostAddress());
 			return new NodeResponse(false, "Error: Connection IP doesn't match payload IP. ");
 		}
+		*/
 
 		return new NodeResponse(true, "Success: Node successfully deregistered.");
 	}
 
-	private NodeResponse validateRegister(String ip, int port, Socket socket) {
+	private synchronized NodeResponse validateRegister(String ip, int port, Socket socket) {
 		// NOTE: This doesn't work on my local router for some reason, but is completely fine
 		// on the school network
 		/*
@@ -325,4 +339,9 @@ public class Registry implements Node {
 		ready = true;
 	}
 
+	@Override
+	public void exit() {
+		// TODO Auto-generated method stub
+		
+	}
 }

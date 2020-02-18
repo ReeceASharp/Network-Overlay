@@ -14,41 +14,34 @@ public class NodeList {
 		nodes = new ArrayList<NodeData>();
 	}
 	
-	
-	//TODO: Maybe need to insert boolean checking to make sure that IP+Port combination isn't already in the system
-	//Additionally, the best way to search the 
-	public void insertNode(NodeData data) {
+	public synchronized void insertNode(NodeData data) {
 		System.out.println("Inserting node: " + data);
 		nodes.add(data);
 	}
 	
-	public void removeNode(String ip, int port) {
+	public synchronized void removeNode(String ip, int port) {
 		int index = contains(ip, port); 
 		if (index > -1)
 			nodes.remove(index);
 	}
 	
-	public void removeNode(int index) {
+	public synchronized void removeNode(int index) {
 		nodes.remove(index);
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("NodeList: *******Size: " + nodes.size() + "\n");
+		sb.append("******* Size: " + nodes.size() + "\n");
 		
 		for (NodeData n : nodes) {
 			sb.append(n.toString() + "\n");
 		}
-		sb.append("-NodeList End");
+		sb.append("*******");
 		return sb.toString();
 	}
 	
-	public int getOpenID() {
-		//TODO: Check somewhere for the max # of spots available, probably before here
-		//at this point it would probably be assumed that it was open
-		//System.out.println(this);
-		
+	public int getOpenID() {		
 		boolean found = true;
 		int id;
 		
@@ -72,7 +65,7 @@ public class NodeList {
 	
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
-	public int contains(String ip, int port) {
+	public synchronized int contains(String ip, int port) {
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
 				return i;
@@ -80,22 +73,22 @@ public class NodeList {
 		
 	}
 	
-	public NodeData getByID(int id) {
+	public synchronized NodeData getByID(int id) {
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getID() == id)
 				return nodes.get(i);
 		return null;
 	}
 	
-	public NodeData get(int i) {
+	public synchronized NodeData get(int i) {
 		return nodes.get(i);
 	}
 	
-	public int size() {
+	public synchronized int size() {
 		return nodes.size();
 	}
 	
-	public void sort() {
+	public synchronized void sort() {
 		Collections.sort(nodes);
 	}
 	
@@ -106,9 +99,19 @@ public class NodeList {
 		return true;
 	}
 	
-	public void setReady(int index) {
-		
+	public synchronized void setReady(int index) {
+		nodes.get(index).setReady();
 	}
+
+	public int[] generateKnownIDs() {
+		int[] knownIDs = new int[nodes.size()];
+		
+		for (int i = 0; i < nodes.size(); i++)
+			knownIDs[i] = nodes.get(i).getID();
+		
+		return knownIDs;
+	}
+	
 	
 	
 }

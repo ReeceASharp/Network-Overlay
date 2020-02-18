@@ -57,10 +57,10 @@ public class TCPServerThread implements Runnable {
 					//String value = clientSocket.getLocalAddress().getHostAddress();
 					//System.out.println("VALUE: " + value);
 					
-					System.out.printf("Received Connection: %s%n", clientSocket.getRemoteSocketAddress());
+					//System.out.printf("Received Connection: %s%n", clientSocket.getRemoteSocketAddress());
 					
 					cache.saveConnection(clientSocket);
-					System.out.println(cache);
+					//System.out.println(cache);
 					
 					//spawn a thread to handle that specific connection, 
 					new Thread(new TCPReceiverThread(clientSocket, node)).start();

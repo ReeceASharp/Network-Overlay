@@ -15,12 +15,16 @@ public class RegistrySendsNodeManifest implements Event {
 	String[] routingIPs;
 	int[] routingPorts;
 	int[] routingIDs;
+	int[] knownIDs;
 
-	public RegistrySendsNodeManifest(String[] routingIPs, int[] routingPorts, int[] routingIDs) {
+	public RegistrySendsNodeManifest(String[] routingIPs, int[] routingPorts, int[] routingIDs, int[] knownIDs) {
 		this.routingIPs = routingIPs;
 		this.routingPorts = routingPorts;
 		this.routingIDs = routingIDs;
+		this.knownIDs = knownIDs;
 		size = routingIPs.length;			//protocols will always assume they have the same size
+		
+		
 	}
 	
 	public RegistrySendsNodeManifest(byte[] marshalledBytes) throws IOException {
@@ -50,7 +54,17 @@ public class RegistrySendsNodeManifest implements Event {
 			
 			//read in ID
 			routingIDs[i] = din.readInt();
+			
+			System.out.printf("%s, %d, %d%n", routingIPs[i], routingPorts[i], routingIDs[i]);
+			
 		}
+		
+		int registryListSize = din.readInt();
+		knownIDs = new int[registryListSize];
+		
+		for (int i = 0; i < registryListSize; i++)
+			knownIDs[i] = din.readInt();
+		
 			
 		//close buffer
 		baInputStream.close();
@@ -90,6 +104,11 @@ public class RegistrySendsNodeManifest implements Event {
 				dout.writeInt(routingIDs[i]);
 			}
 			
+			//read in list of known IDs
+			dout.writeInt(knownIDs.length);
+			for (int i = 0; i < knownIDs.length; i++)
+				dout.writeInt(knownIDs[i]);
+			
 			dout.flush();
 			
 			message = byteOutStream.toByteArray();
@@ -119,6 +138,10 @@ public class RegistrySendsNodeManifest implements Event {
 	
 	public int[] getRoutingIDs() {
 		return routingIDs;
+	}
+	
+	public int[] getKnownIDs() {
+		return knownIDs;
 	}
 
 }

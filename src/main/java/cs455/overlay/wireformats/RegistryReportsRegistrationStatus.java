@@ -66,7 +66,7 @@ public class RegistryReportsRegistrationStatus implements Event {
 			
 			dout.flush();
 			
-			System.out.printf("RegistryReportsRegistrationStatus: ID: %d,'%s'%n", status, information);
+			//System.out.printf("RegistryReportsRegistrationStatus: ID: %d,'%s'%n", status, information);
 			
 			message = byteOutStream.toByteArray();
 			byteOutStream.close();

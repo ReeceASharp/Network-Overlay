@@ -22,7 +22,7 @@ public class TCPReceiverThread implements Runnable {
 	
 	public TCPReceiverThread(Socket socket, Node node) throws IOException {
 		//pg 9, 4.1
-		System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: '%s', IP: %s%n", socket.toString(), node.getServerIP());
+		//System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: '%s', IP: %s%n", socket.toString(), node.getServerIP());
 		this.socket = socket;
 		dataIn = new DataInputStream(socket.getInputStream());
 		this.node = node;
@@ -60,9 +60,7 @@ public class TCPReceiverThread implements Runnable {
 				break;
 			} catch (IOException ioe) {
 				System.out.println("Socket unexpectedly closed, no longer listening to: " + socket.getRemoteSocketAddress());
-				//System.out.printf("TCPReceiverThread::run::IOException: '%s' '%s'%n", ioe.toString(), ioe.getMessage());
 				//TODO: at this point the thread should call the node to remove this data from its registry
-				//ioe.printStackTrace();
 				break;
 			}
 		}

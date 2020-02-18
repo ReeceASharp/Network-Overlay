@@ -28,6 +28,7 @@ public class MessagingNode implements Node {
 	private int id;
 	private Socket registrySocket;
 	private RoutingTable table;
+	private int[] knownIDs;
 	
 	//This may be helpful to implement so it can check the IP address? and the socket is saved?
 	//private Socket socketToRegistry
@@ -40,25 +41,18 @@ public class MessagingNode implements Node {
 	
 	
 	public static void main(String[] args) throws IOException {
-		//TODO: get the host parameter from the arguments, along with the port
 		String registryHost = args[0];
 		int registryPort = Integer.parseInt(args[1]);
-		
-		
 		
 		InetAddress ip = InetAddress.getLocalHost();
 		String host = ip.getHostName();
 
-		//System.out.println("Host: " + registryHost + ", Port: " + registryPort + ", IP: " + ip.getAddress());
-		
 		System.out.printf("Host: %s, HostIP: %s%n",
 				host, ip.getHostAddress());
 		
-		// *** init
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
 
-		
 
 		// start server to listen for incoming connections
 		Thread server = new Thread(new TCPServerThread(node));
@@ -69,8 +63,14 @@ public class MessagingNode implements Node {
 		parser.start();
 		// *** init
 		
+		try {
 		sendRegistration(node, registryHost, registryPort);
-		
+		} catch (IOException e) {
+			System.out.printf("Wasn't able to connect to: %s:%d%n", registryHost, registryPort);
+			server.interrupt();
+			parser.interrupt();
+		}
+	
 		//send registration to registry
 
 		return;
@@ -100,10 +100,6 @@ public class MessagingNode implements Node {
 	
 	
 	private boolean sendDeregistration() throws IOException {
-		
-		//pull registry from cache
-		//Socket connection = new Socket(host, port);
-		//System.out.println("MessagingNode::SendDeRegistration::Successful Connection opened");
 		byte[] message = new OverlayNodeSendsDeregistration(this.getServerIP(), 
 				this.getServerPort(), id).getBytes();
 		
@@ -126,15 +122,12 @@ public class MessagingNode implements Node {
 			break;
 		case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
 			routingSetup(e);
-			//TODO
 			break;
 		case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
 			startPacketSending(e);
-			//TODO
 			break;
 		case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
 			buildSummary(e);
-			//TODO
 			break;
 		default:
 			System.out.printf("Invalid Event type received: '%d'%n");
@@ -146,35 +139,37 @@ public class MessagingNode implements Node {
 	private void buildSummary(Event e) {
 		// TODO Auto-generated method stub
 		//build message of type OverlayNodeReportsTrafficSummary
-		System.out.println("MessagingNode::buildSummary");
+		System.out.println("MessagingNode::buildSummary::TODO");
 
 	}
 
 
 	private void startPacketSending(Event e) {
-		System.out.println("MessagingNode::startPacketSending");
+		System.out.println("MessagingNode::startPacketSending::TODO");
+		
 	}
 
 
 	private void routingSetup(Event e) {
-		System.out.println("MessagingNode::routingSetup");
 		RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) e;
-		//give the message data to the 
+		//give the message data to the table
 		table = new RoutingTable(manifest.getRoutingIPs(), manifest.getRoutingPorts(), manifest.getRoutingIDs());
+		knownIDs = manifest.getKnownIDs();
+		
+		System.out.println(table);
+		
 		
 	}
 
 
 	private void deregistationStatus(Event e) {
 		RegistryReportsDeregistrationStatus message = (RegistryReportsDeregistrationStatus) e;
-		System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", message.getInfo(), message.getStatus());
+		System.out.printf("DeregistrationStatus:: %s, ID: %d%n", message.getInfo(), message.getStatus());
 	}
 
 
 	private void registrationStatus(Event e) {
-		//cast to the correct message type
 		RegistryReportsRegistrationStatus message = (RegistryReportsRegistrationStatus) e;
-		//System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", message.getInfo(), message.getStatus());
 		
 		//updates the id regardless, doesn't matter
 		id = message.getStatus();
@@ -190,13 +185,7 @@ public class MessagingNode implements Node {
 
 	@Override
 	public void onCommand(String[] command) {
-		//System.out.printf("MessagingNode::onCommand:: '%s'%n", command.toString());
-		System.out.print("MessagingNode::onCommand::Command_Length:" + command.length + ": ");
-		for (String s : command)
-			System.out.print("'" + s + "' ");
-		System.out.println();
-		
-		
+	
 		switch (command[0].toLowerCase()) {
 		case "print-counters-and-diagnostics":
 			System.out.println("PRINTING");
@@ -243,5 +232,12 @@ public class MessagingNode implements Node {
 	}
 	public void setRegistrySocket(Socket socket) {
 		registrySocket = socket;
+	}
+
+
+	@Override
+	public void exit() {
+		// TODO Auto-generated method stub
+		
 	}
 }
