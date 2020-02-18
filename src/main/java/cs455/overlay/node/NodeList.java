@@ -22,6 +22,16 @@ public class NodeList {
 		nodes.add(data);
 	}
 	
+	public void removeNode(String ip, int port) {
+		int index = contains(ip, port); 
+		if (index > -1)
+			nodes.remove(index);
+	}
+	
+	public void removeNode(int index) {
+		nodes.remove(index);
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -63,12 +73,18 @@ public class NodeList {
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
 	public int contains(String ip, int port) {
-		for (int i = 0; i < nodes.size(); i++) {
+		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
 				return i;
-		}		
 		return -1;
 		
+	}
+	
+	public NodeData getByID(int id) {
+		for (int i = 0; i < nodes.size(); i++)
+			if (nodes.get(i).getID() == id)
+				return nodes.get(i);
+		return null;
 	}
 	
 	public NodeData get(int i) {
@@ -88,6 +104,10 @@ public class NodeList {
 			if (!nd.ready())
 				return false;
 		return true;
+	}
+	
+	public void setReady(int index) {
+		
 	}
 	
 	

@@ -167,7 +167,7 @@ public class MessagingNode implements Node {
 
 	private void deregistationStatus(Event e) {
 		RegistryReportsDeregistrationStatus message = (RegistryReportsDeregistrationStatus) e;
-		System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", message.getInfo(), id);
+		System.out.printf("RegistrationStatus::Message: %s, ID: %d%n", message.getInfo(), message.getStatus());
 	}
 
 

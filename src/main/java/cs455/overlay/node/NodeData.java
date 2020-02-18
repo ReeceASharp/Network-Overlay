@@ -50,5 +50,12 @@ public class NodeData implements Comparable<NodeData> {
 		return ready;
 	}
 	
+	public void setReady() {
+		ready = true;
+	}
+
+	public Socket getSocket() {
+		return socket;
+	}
 	
 }

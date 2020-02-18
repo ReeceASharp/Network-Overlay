@@ -71,6 +71,7 @@ public class Registry implements Node {
 	}
 
 	private void listNodes() {
+		nodeList.sort();
 		System.out.println(nodeList);
 	}
 	
@@ -95,12 +96,14 @@ public class Registry implements Node {
 		if (response.successful()) {
 			index = nodeList.contains(deregistration.getIP(), deregistration.getPort());
 			System.out.printf("Success: Found node: '%s'%n", nodeList.get(index));
+			nodeList.removeNode(index);
 		} else {
 			index = -1;
 		}	
+		
+
+		
 		byte[] marshalledBytes = new RegistryReportsDeregistrationStatus(index, response.getMessage()).getBytes();
-		
-		
 		sendMessage(socket, marshalledBytes);
 	}
 
@@ -125,17 +128,24 @@ public class Registry implements Node {
 		sendMessage(socket, marshalledBytes);
 	}
 
-	private void nodeReportTraffic() {
+	private void nodeReportTraffic(Event e) {
 		System.out.println("nodeReportTraffic()");
 	}
 
 	// node is reporting its status
-	private void nodeSetupStatus() {
+	private void nodeSetupStatus(Event e) {
 		System.out.println("nodeSetupStatus");
-		//save to a data structure that keeps track of
+		NodeReportsOverlaySetupStatus status = (NodeReportsOverlaySetupStatus) e;
+		
+		//update node of list
+		nodeList.getByID(status.getStatus()).setReady();
+		
+		//check that this is the last one
+		if (nodeList.readyToStart())
+			ready = true;
 	}
 
-	private void nodeTaskFinished() {
+	private void nodeTaskFinished(Event e) {
 		System.out.println("nodeTaskFinished");
 	}
 
@@ -157,7 +167,7 @@ public class Registry implements Node {
 			listTables();
 			break;
 		case "start":
-			
+			sendInitiate(command);
 			break;
 		default:
 			System.out.println("Should never reach this");
@@ -178,13 +188,13 @@ public class Registry implements Node {
 			break;
 		case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
 			//TODO: keep track of whether each node's setup success was received inside nodeData?
-			nodeSetupStatus();
+			nodeSetupStatus(e);
 			break;
 		case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
-			nodeTaskFinished();
+			nodeTaskFinished(e);
 			break;
 		case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
-			nodeReportTraffic();
+			nodeReportTraffic(e);
 			break;
 		default:
 			System.err.printf("Registry::onEvent::invalid control message: %d%n", e.getType());
@@ -200,18 +210,53 @@ public class Registry implements Node {
 		new Thread(new TCPSenderThread(socket, marshalledBytes)).start();
 	}
 
-	private void setupOverlay(String[] args) {
+	private void setupOverlay(String[] command) {
 		//get parameter, and hopefully n <= (2^n)-1
 		System.out.println("Registry::setupOverlay::STARTING UP");
 		
 		//test if the second parameter is valid
+		int tableSize = Integer.parseInt(command[1]);
+		
+		if (tableSize * tableSize + 1 > nodeList.size() && tableSize > 0) {
+			System.out.println("Error: Invalid overlay size: " + tableSize);
+		}
+		
+		nodeList.sort();
+		
+		//setup tables
+		setupRoutingTables();
+		
 		
 		//start the sendout if necessary
+		RoutingTable temp;
+		byte[] marshalledBytes = null;
+		
+		//send each table off to its respective node
+		for (int i = 0; i < nodeList.size(); i++) {
+			temp = tables.get(i);
+			
+			marshalledBytes = new RegistrySendsNodeManifest(temp.getIpList(), 
+					temp.getPortList(), temp.getIdList()).getBytes();
+			
+			new Thread(new TCPSenderThread(nodeList.get(i).getSocket(),
+					marshalledBytes)).start();
+		}
+		
+		
+	}
+	
+	//bases its information off of the data inside of nodeList
+	private void setupRoutingTables() {
+		
+		for (int i = 0; i < nodeList.size(); i++) {
+			
+		}
 		
 	}
 
 	// TODO: may need to synchronize this, as its setters and getters may be
-	// accessed simultaneously
+	// accessed simultaneously, but this is done at the very beginning, so
+	// multiple accesses aren't capable of happening
 	@Override
 	public void updateServerInfo(String ip, int port) {
 		serverIP = ip;
@@ -227,7 +272,8 @@ public class Registry implements Node {
 
 		if (!(ip.equals(socket.getInetAddress().getHostAddress()))) {
 			
-			System.out.println("Error: connection IP doesn't match payload IP"); //return ; }
+			System.out.printf("Socket IP doesn't match: '%s' vs '%s'%n", ip,
+					 socket.getInetAddress().getHostAddress());
 			return new NodeResponse(false, "Error: Connection IP doesn't match payload IP. ");
 		}
 
@@ -256,6 +302,20 @@ public class Registry implements Node {
 		//Node can be added to registry, but append increment size before as this is generated it's added
 		return new NodeResponse(true, String.format("Success: MesssagingNode was successfully added. There are currently (%s) nodes"
 				+ " in the system.", nodeList.size() + 1));
+	}
+	
+	private void sendInitiate(String[] command) {
+		//check that the system is setup
+		if (!ready) {
+			System.out.println("Error: Not Ready to send");
+			return;
+		}		
+		
+		//check message for validity
+		if (command.length != 2 && (Integer.parseInt(command[1]) < 1)) {
+			
+		}
+		
 	}
 	
 	

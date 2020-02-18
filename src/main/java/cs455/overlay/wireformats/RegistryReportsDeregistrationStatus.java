@@ -77,9 +77,11 @@ public class RegistryReportsDeregistrationStatus implements Event {
 	}
 
 	public String getInfo() {
-		System.out.println("REG DEREG::getinfo");
-		// TODO Auto-generated method stub
-		return null;
+		return information;
+	}
+	
+	public int getStatus() {
+		return status;
 	}
 
 }
