@@ -53,4 +53,8 @@ public class RoutingTable {
 		return nodes;
 	}
 	
+	public void openConnections() {
+		for (RoutingEntry n : nodes)
+			n.openConnections();
+	}
 }

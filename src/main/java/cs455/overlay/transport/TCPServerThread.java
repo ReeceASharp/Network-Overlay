@@ -11,7 +11,7 @@ import cs455.overlay.node.Node;
 public class TCPServerThread implements Runnable {
 
 	ServerSocket serverSocket;
-	TCPConnectionsCache cache;
+	//TCPConnectionsCache cache;
 	Node node;
 	InetAddress addr;
 	int port;
@@ -24,7 +24,7 @@ public class TCPServerThread implements Runnable {
 	
 	public TCPServerThread(Node node, int port) {
 		this.node = node;
-		cache = new TCPConnectionsCache();
+		//cache = new TCPConnectionsCache();
 		serverSocket = null;
 		this.port = port;
 	}
@@ -57,9 +57,9 @@ public class TCPServerThread implements Runnable {
 					//String value = clientSocket.getLocalAddress().getHostAddress();
 					//System.out.println("VALUE: " + value);
 					
-					//System.out.printf("Received Connection: %s%n", clientSocket.getRemoteSocketAddress());
+					System.out.printf("Received Connection: %s%n", clientSocket.getRemoteSocketAddress());
 					
-					cache.saveConnection(clientSocket);
+					//cache.saveConnection(clientSocket);
 					//System.out.println(cache);
 					
 					//spawn a thread to handle that specific connection, 

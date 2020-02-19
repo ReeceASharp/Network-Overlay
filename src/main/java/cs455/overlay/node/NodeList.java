@@ -75,8 +75,9 @@ public class NodeList {
 	
 	public synchronized NodeData getByID(int id) {
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).getID() == id)
+			if (nodes.get(i).getID() == id) {
 				return nodes.get(i);
+			}
 		return null;
 	}
 	

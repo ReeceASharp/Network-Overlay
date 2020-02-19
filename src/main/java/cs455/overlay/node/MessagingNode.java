@@ -10,6 +10,7 @@ import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
 import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 
@@ -20,8 +21,6 @@ import java.net.Socket;
 public class MessagingNode implements Node {
 	// int sendTracker; // # of messages sent, must be atomic
 	// int receiveTracker; // # of messages received, must be atomic
-	//private TCPConnectionsCache cache; //holds the socket addresses
-	//private EventFactory factory;
 	
 	private String serverIP;
 	private int serverPort;
@@ -30,9 +29,6 @@ public class MessagingNode implements Node {
 	private RoutingTable table;
 	private int[] knownIDs;
 	
-	//This may be helpful to implement so it can check the IP address? and the socket is saved?
-	//private Socket socketToRegistry
-
 	private MessagingNode() {
 		//cache = new TCPConnectionsCache();
 		registrySocket = null;
@@ -152,12 +148,25 @@ public class MessagingNode implements Node {
 
 	private void routingSetup(Event e) {
 		RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) e;
-		//give the message data to the table
+		//give the message data to the table, will setup the connections as well
 		table = new RoutingTable(manifest.getNodes());
 		knownIDs = manifest.getKnownIDs();
 		
 		System.out.println(table);
 		
+		//open and save the connections
+		table.openConnections();
+		
+		byte[] marshalledBytes = new NodeReportsOverlaySetupStatus(id, String.format("Success: Node #%d finished setup", id)).getBytes();
+		
+		
+		try {
+			sendMessage(registrySocket, marshalledBytes);
+		} catch (IOException e1) {
+			System.out.println("Failed to Send Message");
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 	}
 
