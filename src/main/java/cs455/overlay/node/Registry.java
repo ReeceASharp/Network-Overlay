@@ -141,8 +141,10 @@ public class Registry implements Node {
 		nodeList.getByID(status.getStatus()).setReady();
 		
 		//check that this is the last one
-		if (nodeList.readyToStart())
+		if (nodeList.readyToStart()) {
+			System.out.println("Ready to start!");
 			ready = true;
+		}
 	}
 
 	private void nodeTaskFinished(Event e) {

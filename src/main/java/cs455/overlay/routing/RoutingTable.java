@@ -32,9 +32,6 @@ public class RoutingTable {
 			//set the array values
 			table[i] = new RoutingEntry(data.getIP(), data.getPort(), data.getID());
 		}
-		
-		
-		
 		return new RoutingTable(table);
 	}
 	

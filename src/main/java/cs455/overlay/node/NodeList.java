@@ -41,7 +41,7 @@ public class NodeList {
 		return sb.toString();
 	}
 	
-	public int getOpenID() {		
+	public synchronized int getOpenID() {		
 		boolean found = true;
 		int id;
 		
