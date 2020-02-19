@@ -14,7 +14,6 @@ public class TCPReceiverThread implements Runnable {
 	
 	//int sendTracker;		// # of messages sent
 	//int receiveTracker;		// # of messages received
-	//TCPConnectionsCache cache;	//holds the socket addresses
 	
 	private Socket socket;
 	private DataInputStream dataIn;
@@ -32,7 +31,6 @@ public class TCPReceiverThread implements Runnable {
 	
 	@Override
 	public void run() {
-		//System.out.println("TCPReceiverThread::run::");
 		int dataLength;
 		
 		while (socket != null) {
@@ -42,7 +40,7 @@ public class TCPReceiverThread implements Runnable {
 				
 				dataLength = dataIn.readInt();
 				
-				//System.out.println("Received a message length of: " + dataLength);
+				System.out.println("Received a message length of: " + dataLength + ", from " + socket);
 				
 				byte[] incomingMessage = new byte[dataLength];
 				dataIn.readFully(incomingMessage, 0, dataLength);	
@@ -62,12 +60,14 @@ public class TCPReceiverThread implements Runnable {
 				System.out.println("Socket unexpectedly closed, no longer listening to: " + socket.getRemoteSocketAddress());
 				//TODO: at this point the thread should call the node to remove this data from its registry
 				break;
+			} catch (Exception e) {
+				System.out.println("CAUGHT AN EXCEPTION REGARDING RECEIVER");
+				System.out.println("Exception: '" + e + "'");
 			}
 		}
-		
+		System.out.println("PIPE IS NOW CLOSED:" + socket);
 		try {
 			dataIn.close();
-			socket.close();
 		} catch (IOException e) {
 			System.out.println("Attempting to close Pipes");
 			e.printStackTrace();

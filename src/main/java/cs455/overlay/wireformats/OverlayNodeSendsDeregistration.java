@@ -40,7 +40,6 @@ public class OverlayNodeSendsDeregistration implements Event {
 		
 		//retrieve port
 		port = din.readInt();
-		//System.out.printf("OverlayNodeSendsDregistration::IP: '%s', Port: '%d'%n", ip, port);
 		id = din.readInt();
 		
 		//close wrapper streams
@@ -80,7 +79,6 @@ public class OverlayNodeSendsDeregistration implements Event {
 			//ensure all is written before the buffer is converted to a byte array
 			dout.flush();
 			
-			//System.out.printf("ip: '%s', Port: %d, ipBytes Length: '%d'%n", ip, port, ipBytes.length);
 
 
 			marshalledBytes = byteOutStream.toByteArray();

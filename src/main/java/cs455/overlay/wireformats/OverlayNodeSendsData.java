@@ -32,7 +32,7 @@ public class OverlayNodeSendsData implements Event {
 	public OverlayNodeSendsData(byte[] marshalledBytes) throws IOException {
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
 		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
-		
+			
 		din.readInt();
 		
 		destinationID = din.readInt();
@@ -80,15 +80,19 @@ public class OverlayNodeSendsData implements Event {
 			for (int i = 0; i < nodesVisited; i++)
 				dout.writeInt(visitedList[i]);
 			
+			dout.flush();
+			
+			marshalledBytes = byteOutStream.toByteArray();
+			byteOutStream.close();
+			dout.close();
 			
 		} catch (IOException e) {
-			//failed for some reason
 			System.out.println(e);
 		}
 		return marshalledBytes;
 	}
 	
-	public int getDesitinationID() {
+	public int getDestinationID() {
 		return destinationID;
 	}
 	

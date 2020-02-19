@@ -19,8 +19,6 @@ public class NodeReportsOverlaySetupStatus implements Event {
 		this.information = information;
 	}
 	
-	
-	
 	public NodeReportsOverlaySetupStatus(byte[] marshalledBytes) throws IOException {
 		
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);

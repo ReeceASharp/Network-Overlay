@@ -5,23 +5,25 @@ import cs455.overlay.transport.TCPReceiverThread;
 import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
-import cs455.overlay.wireformats.Protocol;
-import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
-import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
-import cs455.overlay.wireformats.RegistrySendsNodeManifest;
-import cs455.overlay.wireformats.Event;
-import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
-import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
-import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
+import cs455.overlay.wireformats.*;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 
 public class MessagingNode implements Node {
-	// int sendTracker; // # of messages sent, must be atomic
-	// int receiveTracker; // # of messages received, must be atomic
+	volatile AtomicInteger packetsSent; 		// # of data messages sent, must be atomic
+	volatile AtomicInteger packetsRelayed;		// # of data messages relayed
+	volatile AtomicInteger packetsReceived; 	// # of data messages received, must be atomic
+	volatile AtomicLong sentSum;			// adding up the payloads being sent
+	volatile AtomicLong receivedSum;		// adding up the payloads being received
 	
+	static final Random rng = new Random(); //node generator
 	private String serverIP;
 	private int serverPort;
 	private int id;
@@ -29,10 +31,17 @@ public class MessagingNode implements Node {
 	private RoutingTable table;
 	private int[] knownIDs;
 	
+	
 	private MessagingNode() {
-		//cache = new TCPConnectionsCache();
 		registrySocket = null;
 		id = -1;
+		
+		packetsSent = new AtomicInteger();
+		packetsRelayed = new AtomicInteger();
+		packetsReceived = new AtomicInteger();
+		
+		sentSum = new AtomicLong();
+		receivedSum = new AtomicLong();	
 	}
 	
 	
@@ -60,15 +69,14 @@ public class MessagingNode implements Node {
 		// *** init
 		
 		try {
-		sendRegistration(node, registryHost, registryPort);
+			
+			sendRegistration(node, registryHost, registryPort);
 		} catch (IOException e) {
 			System.out.printf("Wasn't able to connect to: %s:%d%n", registryHost, registryPort);
 			server.interrupt();
 			parser.interrupt();
 		}
 	
-		//send registration to registry
-
 		return;
 	}
 	
@@ -125,6 +133,9 @@ public class MessagingNode implements Node {
 		case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
 			buildSummary(e);
 			break;
+		case Protocol.OVERLAY_NODE_SENDS_DATA:
+			dataPacketProcess(e);
+			break;
 		default:
 			System.out.printf("Invalid Event type received: '%d'%n");
 		}
@@ -133,18 +144,137 @@ public class MessagingNode implements Node {
 
 
 	private void buildSummary(Event e) {
-		// TODO Auto-generated method stub
 		//build message of type OverlayNodeReportsTrafficSummary
+		//inside nodeData set whether all of the data has been received by the nodes before attempting to print out values
 		System.out.println("MessagingNode::buildSummary::TODO");
 
 	}
 
 
 	private void startPacketSending(Event e) {
-		System.out.println("MessagingNode::startPacketSending::TODO");
+		RegistryRequestsTaskInitiate init = (RegistryRequestsTaskInitiate) e;
+		
+		int maxSending = init.getPacketsToSend();
+		
+		for (int i = 0; i < maxSending; i++) {
+			int destinationID = getRandomKnownNode();
+			int payload = rng.nextInt();
+			System.out.printf("Packet #%d, Dest: %d%n", i, destinationID);
+			Event temp = (Event) new OverlayNodeSendsData(destinationID, id, payload, 0, new int[] {});
+			
+			//increment sent
+			packetsSent.incrementAndGet();
+			//add up payload being sent
+			sentSum.addAndGet(payload);
+			
+			//find socket of closest packet
+			int index = table.contains(destinationID);
+			Socket socket;
+			//node is in table, send directly
+			if (index > -1) {
+				socket = table.get(index).getEntrySocket();
+			}
+			else {
+				index = findClosestIDIndex(destinationID);
+
+				socket = table.get(index).getEntrySocket();
+			}
+			
+			//send it off, don't use dataPacketProcess as that will incorrectly increment the relay
+			byte[] marshalledBytes = temp.getBytes();
+			try {
+				sendMessage(socket, marshalledBytes);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		//send task completion to Registry
+		System.out.printf("Sent: %d, Total: %d%n", packetsSent.get(), sentSum.get());
+		
+		byte[] marshalledBytes = new OverlayNodeReportsTaskFinished(serverIP, serverPort, id).getBytes();
+		
+		try {
+			System.out.println("Sending Confirmation");
+			sendMessage(registrySocket, marshalledBytes);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		
 	}
 
+	//handle the event
+	private void dataPacketProcess(Event temp) {
+		System.out.println("Processing Packet");
+		OverlayNodeSendsData data = (OverlayNodeSendsData) temp;
+		
+
+		
+		//check if the node goes here, otherwise relay
+		if (data.getDestinationID() == id) {
+			System.out.println("PACKET MADE IT TO DESTINATION");
+			
+			receivedSum.addAndGet(data.getPayload());
+			
+			//increment received
+			packetsReceived.incrementAndGet();
+			
+		}
+		else {
+			System.out.println("ROUTING PACKET");
+			//find node in routing list, or send it somewhere else
+			Socket socket = null;
+			int index = table.contains(data.getDestinationID());
+			if (index > -1) {
+				socket = table.get(index).getEntrySocket();
+				System.out.println("DIRECT SOCKET: " + socket);
+				
+			}
+			else {
+				index = findClosestIDIndex(data.getDestinationID());
+
+				socket = table.get(index).getEntrySocket();
+				System.out.println("ROUTING SOCKET: " + socket);
+			}
+			
+			//increment relay
+			packetsRelayed.incrementAndGet();
+
+			//increment visited #
+			int visitedTotal = data.getNodesVisited() + 1;
+			//append visited
+			int[] visited = data.getVisitedList();
+			if (visited.length > 0) {
+				visited  = Arrays.copyOf(visited, visited.length + 1);
+				visited[visited.length -1] = id;
+			}
+			else {
+				visited = new int[]{id};
+			}
+			
+
+			
+			
+			if (visitedTotal != visited.length) {
+				System.out.println("NODE VISITED TOTAL:" + visitedTotal + ", Array total:" + visited.length + ", DONT MATCH");
+				return;
+			}
+			else {
+				byte[] marshalledBytes = new OverlayNodeSendsData(data.getDestinationID(), data.getSourceID(), data.getPayload(),
+						visitedTotal, visited).getBytes();
+			
+			try {
+				System.out.println("Attempting to Relay Packets");
+				sendMessage(socket, marshalledBytes);
+			} catch (IOException e) {
+				
+				e.printStackTrace();
+			}
+			}
+		}
+		
+		
+		
+	}
 
 	private void routingSetup(Event e) {
 		RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) e;
@@ -164,7 +294,6 @@ public class MessagingNode implements Node {
 			sendMessage(registrySocket, marshalledBytes);
 		} catch (IOException e1) {
 			System.out.println("Failed to Send Message");
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -204,7 +333,6 @@ public class MessagingNode implements Node {
 			try {
 				sendDeregistration();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
@@ -212,6 +340,20 @@ public class MessagingNode implements Node {
 			System.out.println("Should never reach this");
 		}
 		
+	}
+	
+	public int getRandomKnownNode() {
+		int index = -1;
+		int knownSize = knownIDs.length;	//save to streamline queries
+		
+		boolean valid = false;
+		while (!valid) {
+			index = rng.nextInt(knownSize);
+			if (knownIDs[index] != id)
+				valid = true;
+		}
+		
+		return knownIDs[index];
 	}
 
 
@@ -225,7 +367,6 @@ public class MessagingNode implements Node {
 		serverPort = port;
 	}
 	
-	//TODO: may need to be synchronized, but because of the order this may not need to happen
 	@Override
 	public String getServerIP() {
 		return serverIP;
@@ -239,14 +380,51 @@ public class MessagingNode implements Node {
 	public Socket getRegistrySocket() {
 		return registrySocket;
 	}
+	
 	public void setRegistrySocket(Socket socket) {
 		registrySocket = socket;
+	}
+	
+	//algorithm to find the ID in the routing table that is closest behind the destination
+	//It will never overshoot otherwise messages will bounce around
+	private int findClosestIDIndex(int destinationID) {
+		//start at this ID
+		//System.out.println("Destination: " + destinationID);
+		//System.out.println(table);
+
+		int closest = 128;
+		int routingIndex = -1;
+		int distance = -1;
+		//for each ID in routing Table
+		for (int i = 0; i < table.size(); i++) {
+
+			int tempID = table.get(i).getID();
+			//System.out.printf("i: %d, id: %d, %n", i, tempID);
+			
+			//standardize as this is circular
+			if (tempID > destinationID)
+				tempID -= 128;
+			
+			//get node distance, want to be as low as possible as that maximizes distance jumped
+			distance = destinationID - tempID;
+			
+			//System.out.printf("Closest: %d, Distance: %d%n", closest, distance);
+			if (closest > distance) {
+				closest = destinationID - tempID;
+				routingIndex = i;
+			}
+		}
+		return routingIndex;
 	}
 
 
 	@Override
 	public void exit() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("Exiting");
+		try {
+		registrySocket.close();
+		} catch (IOException e) {
+			System.out.println("Socket already closed. Exiting");
+		}
 	}
 }

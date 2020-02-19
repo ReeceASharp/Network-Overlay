@@ -59,5 +59,9 @@ public class RegistryRequestsTaskInitiate implements Event {
 		
 		return message;
 	}
+	
+	public int getPacketsToSend() {
+		return packetsToSend;
+	}
 
 }

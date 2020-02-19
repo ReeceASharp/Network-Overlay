@@ -39,7 +39,6 @@ public class OverlayNodeSendsRegistration implements Event {
 		
 		//retrieve port
 		port = din.readInt();
-		//System.out.printf("IP: '%s', Port: '%d'%n", ip, port);
 		
 		//close wrapper streams
 		baInputStream.close();
@@ -55,7 +54,6 @@ public class OverlayNodeSendsRegistration implements Event {
 
 	@Override
 	public byte[] getBytes() {
-		
 		byte[] message = null;
 		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
 		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
@@ -63,12 +61,12 @@ public class OverlayNodeSendsRegistration implements Event {
 		try {
 			//write event type to decode on arrival
 			dout.writeInt(type);
-			
+
 			//write IP address
 			byte[] ipBytes = ip.getBytes();
 			dout.writeInt(ipBytes.length);
 			dout.write(ipBytes); 
-			//System.out.println("IP: " + ip);
+
 			
 			//write port
 			dout.writeInt(port);
@@ -76,7 +74,6 @@ public class OverlayNodeSendsRegistration implements Event {
 			//ensure all is written before the buffer is converted to a byte array
 			dout.flush();
 			
-			//System.out.printf("ip: '%s', Port: %d, ipBytes Length: '%d'%n", ip, port, ipBytes.length);
 
 
 			message = byteOutStream.toByteArray();

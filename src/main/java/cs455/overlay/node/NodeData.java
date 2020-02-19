@@ -3,11 +3,12 @@ package cs455.overlay.node;
 import java.net.Socket;
 
 public class NodeData implements Comparable<NodeData> {
-	String ip;		//IP associated with the node's server
-	int port;		//port associated with the node's server
-	int id;			//ID issued by the Registry
-	Socket socket;
-	boolean ready;	//whether this node reports its RoutingTable is received and set up	
+	volatile String ip;		//IP associated with the node's server
+	volatile int port;		//port associated with the node's server
+	volatile int id;			//ID issued by the Registry
+	volatile Socket socket;
+	volatile boolean ready;	//whether this node reports its RoutingTable is received and set up	
+	volatile boolean done;
 	
 	public NodeData(String ip, int port, int id, Socket socket) {
 		this.ip = ip;
@@ -15,6 +16,7 @@ public class NodeData implements Comparable<NodeData> {
 		this.id = id;
 		this.socket = socket;
 		this.ready = false;
+		this.done = false;
 	}
 	
 	@Override
@@ -56,6 +58,14 @@ public class NodeData implements Comparable<NodeData> {
 
 	public Socket getSocket() {
 		return socket;
+	}
+	
+	public void reset() {
+		done = false;
+	}
+	
+	public void setDone() {
+		done = true;
 	}
 	
 }

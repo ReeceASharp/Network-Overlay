@@ -6,8 +6,8 @@ import java.net.Socket;
 
 public class TCPSenderThread implements Runnable {
 	private Socket socket;
-	private DataOutputStream dout;
 	private byte[] msg;
+	private Object lock = new Object();
 	
 	public TCPSenderThread(Socket socket, byte[] msg) {
 		this.socket = socket;
@@ -16,18 +16,21 @@ public class TCPSenderThread implements Runnable {
 
 	@Override
 	public void run() {
-		//using the established pipeline to send information
-		//System.out.println("TCPSender::run::sending_to:" + socket);
+		//using the established socket to send information
 		
 		int msgLength = msg.length;
 		try {
-			dout = new DataOutputStream(this.socket.getOutputStream());
+			DataOutputStream dout = new DataOutputStream(this.socket.getOutputStream());
 			
+			
+			synchronized(socket) {
 			//write message to buffer
-			dout.writeInt(msgLength);
-			dout.write(msg, 0, msgLength);
-			dout.flush();
-			
+				dout.writeInt(msgLength);
+				dout.write(msg, 0, msgLength);
+				
+				dout.flush();
+			}
+			System.out.println("Successfully wrote " + msgLength + " bytes to " + socket);
 		} catch (IOException e) {
 			System.out.println("TCPSender::run::writing_to_output: " + e);
 		}

@@ -11,7 +11,6 @@ public class TCPConnectionsCache {
 	}
 	
 	public void saveConnection(Socket socket) {
-		//System.out.println("TCPConnectionsCache::saveConnection::" + socket.toString());
 		sockets.add(socket);
 	}
 	
@@ -38,11 +37,6 @@ public class TCPConnectionsCache {
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
 	public int contains(String ip, int port) {
-		System.out.println(this.getClass().getSimpleName() + "::contains::listConnections");
-		
-		
-		
-		
 		
 		for (int i = 0; i < sockets.size(); i++) {
 			Socket temp = sockets.get(i);

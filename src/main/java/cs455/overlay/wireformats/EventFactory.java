@@ -1,7 +1,7 @@
 package cs455.overlay.wireformats;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 public class EventFactory {
@@ -15,8 +15,16 @@ public class EventFactory {
 	}
 	
 	public Event createEvent(byte[] marshalledBytes) throws IOException {
-		ByteArrayInputStream bin = new ByteArrayInputStream(marshalledBytes);
-		int value = ByteBuffer.wrap( marshalledBytes ).getInt();
+		int value = 0;
+		try {
+			value = ByteBuffer.wrap( marshalledBytes ).getInt();
+		} catch (BufferUnderflowException e) {
+			e.getStackTrace();
+			System.out.println("Byte Size: " + marshalledBytes.length);
+		} catch (NullPointerException e) {
+			System.out.println("Empty Message");
+			e.getStackTrace();
+		}
 		//System.out.printf("EventFactory::createEvent: Value = %d%n", value);
 		
 		switch (value) {

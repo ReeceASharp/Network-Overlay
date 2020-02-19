@@ -1,32 +1,37 @@
 package cs455.overlay.node;
 
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
 public class NodeList {
-	ArrayList<NodeData> nodes;
+	private ArrayList<NodeData> nodes;
 	
-	static final Random rng = new Random(); //ID # generator
-	static final int MAX_SIZE = 128;		//2^7 nodes can be inserted
+	private static final Random rng = new Random(); //ID # generator
+	private static final int MAX_SIZE = 128;		//2^7 nodes can be inserted
 	
 	public NodeList() {
 		nodes = new ArrayList<NodeData>();
 	}
 	
-	public synchronized void insertNode(NodeData data) {
-		System.out.println("Inserting node: " + data);
-		nodes.add(data);
+	public synchronized int insertNode(String ip, int port, Socket socket) {
+		int index = contains(ip, port);
+		int id = index;
+		if (index == -1) {
+			id = getOpenID();
+			nodes.add(new NodeData(ip, port, id, socket));
+		}
+		return id;
+		
 	}
 	
-	public synchronized void removeNode(String ip, int port) {
-		int index = contains(ip, port); 
-		if (index > -1)
+	public synchronized int removeNode(String ip, int port) {
+		int index = contains(ip, port);
+		if (index > -1) {
 			nodes.remove(index);
-	}
-	
-	public synchronized void removeNode(int index) {
-		nodes.remove(index);
+		}
+		return index;
 	}
 	
 	@Override
@@ -41,7 +46,7 @@ public class NodeList {
 		return sb.toString();
 	}
 	
-	public synchronized int getOpenID() {		
+	private synchronized int getOpenID() {
 		boolean found = true;
 		int id;
 		
@@ -55,7 +60,6 @@ public class NodeList {
 					found = false;
 			
 		} while (!found);
-		
 		return id;
 	}
 	
@@ -65,7 +69,7 @@ public class NodeList {
 	
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
-	public synchronized int contains(String ip, int port) {
+	private synchronized int contains(String ip, int port) {
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
 				return i;
@@ -89,6 +93,7 @@ public class NodeList {
 		return nodes.size();
 	}
 	
+	//sort by ID, needs to be synchronized so no nodes are appended out of order
 	public synchronized void sort() {
 		Collections.sort(nodes);
 	}
@@ -104,7 +109,8 @@ public class NodeList {
 		nodes.get(index).setReady();
 	}
 
-	public int[] generateKnownIDs() {
+	//only used by Registry (1 thread)
+	public synchronized int[] generateKnownIDs() {
 		int[] knownIDs = new int[nodes.size()];
 		
 		for (int i = 0; i < nodes.size(); i++)
