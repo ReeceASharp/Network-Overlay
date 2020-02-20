@@ -15,6 +15,8 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.imageio.spi.RegisterableService;
+
 
 public class MessagingNode implements Node {
 	volatile AtomicInteger packetsSent; 		// # of data messages sent, must be atomic
@@ -30,6 +32,9 @@ public class MessagingNode implements Node {
 	private Socket registrySocket;
 	private RoutingTable table;
 	private int[] knownIDs;
+	
+	private Thread server;
+	private Thread parser;
 	
 	
 	private MessagingNode() {
@@ -73,8 +78,7 @@ public class MessagingNode implements Node {
 			sendRegistration(node, registryHost, registryPort);
 		} catch (IOException e) {
 			System.out.printf("Wasn't able to connect to: %s:%d%n", registryHost, registryPort);
-			server.interrupt();
-			parser.interrupt();
+			System.exit(0);
 		}
 	
 		return;
@@ -147,19 +151,27 @@ public class MessagingNode implements Node {
 		//build message of type OverlayNodeReportsTrafficSummary
 		//inside nodeData set whether all of the data has been received by the nodes before attempting to print out values
 		System.out.println("MessagingNode::buildSummary::TODO");
-
+		
+		byte[] marshalledBytes = new OverlayNodeReportsTrafficSummary(id, packetsSent.get(), 
+				packetsRelayed.get(), sentSum.get(), packetsReceived.get(), receivedSum.get()).getBytes();
+		
+		try {
+			sendMessage(registrySocket, marshalledBytes);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 
 	private void startPacketSending(Event e) {
 		RegistryRequestsTaskInitiate init = (RegistryRequestsTaskInitiate) e;
-		
+		System.out.println("Starting Task...");
 		int maxSending = init.getPacketsToSend();
 		
 		for (int i = 0; i < maxSending; i++) {
 			int destinationID = getRandomKnownNode();
 			int payload = rng.nextInt();
-			System.out.printf("Packet #%d, Dest: %d%n", i, destinationID);
+			//System.out.printf("Packet #%d, Dest: %d%n", i, destinationID);
 			Event temp = (Event) new OverlayNodeSendsData(destinationID, id, payload, 0, new int[] {});
 			
 			//increment sent
@@ -189,12 +201,12 @@ public class MessagingNode implements Node {
 			}
 		}
 		//send task completion to Registry
-		System.out.printf("Sent: %d, Total: %d%n", packetsSent.get(), sentSum.get());
+		System.out.printf("Finished Task. Sent: %d, Total: %d%n", packetsSent.get(), sentSum.get());
 		
 		byte[] marshalledBytes = new OverlayNodeReportsTaskFinished(serverIP, serverPort, id).getBytes();
 		
 		try {
-			System.out.println("Sending Confirmation");
+			//System.out.println("Sending Confirmation");
 			sendMessage(registrySocket, marshalledBytes);
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -204,14 +216,14 @@ public class MessagingNode implements Node {
 
 	//handle the event
 	private void dataPacketProcess(Event temp) {
-		System.out.println("Processing Packet");
+		//System.out.println("Processing Packet");
 		OverlayNodeSendsData data = (OverlayNodeSendsData) temp;
 		
 
 		
 		//check if the node goes here, otherwise relay
 		if (data.getDestinationID() == id) {
-			System.out.println("PACKET MADE IT TO DESTINATION");
+			//System.out.println("PACKET MADE IT TO DESTINATION");
 			
 			receivedSum.addAndGet(data.getPayload());
 			
@@ -220,20 +232,20 @@ public class MessagingNode implements Node {
 			
 		}
 		else {
-			System.out.println("ROUTING PACKET");
+			//System.out.println("ROUTING PACKET");
 			//find node in routing list, or send it somewhere else
 			Socket socket = null;
 			int index = table.contains(data.getDestinationID());
 			if (index > -1) {
 				socket = table.get(index).getEntrySocket();
-				System.out.println("DIRECT SOCKET: " + socket);
+				//System.out.println("DIRECT SOCKET: " + socket);
 				
 			}
 			else {
 				index = findClosestIDIndex(data.getDestinationID());
 
 				socket = table.get(index).getEntrySocket();
-				System.out.println("ROUTING SOCKET: " + socket);
+				//System.out.println("ROUTING SOCKET: " + socket);
 			}
 			
 			//increment relay
@@ -255,7 +267,7 @@ public class MessagingNode implements Node {
 			
 			
 			if (visitedTotal != visited.length) {
-				System.out.println("NODE VISITED TOTAL:" + visitedTotal + ", Array total:" + visited.length + ", DONT MATCH");
+				//System.out.println("NODE VISITED TOTAL:" + visitedTotal + ", Array total:" + visited.length + ", DONT MATCH");
 				return;
 			}
 			else {
@@ -263,7 +275,7 @@ public class MessagingNode implements Node {
 						visitedTotal, visited).getBytes();
 			
 			try {
-				System.out.println("Attempting to Relay Packets");
+				//System.out.println("Attempting to Relay Packets");
 				sendMessage(socket, marshalledBytes);
 			} catch (IOException e) {
 				
@@ -282,7 +294,7 @@ public class MessagingNode implements Node {
 		table = new RoutingTable(manifest.getNodes());
 		knownIDs = manifest.getKnownIDs();
 		
-		System.out.println(table);
+		System.out.println("Received Overlay Routing Table from the Registry:\n" + table);
 		
 		//open and save the connections
 		table.openConnections();
@@ -303,6 +315,9 @@ public class MessagingNode implements Node {
 	private void deregistationStatus(Event e) {
 		RegistryReportsDeregistrationStatus message = (RegistryReportsDeregistrationStatus) e;
 		System.out.printf("DeregistrationStatus:: %s, ID: %d%n", message.getInfo(), message.getStatus());
+		
+		//exit now
+		exit();
 	}
 
 
@@ -388,9 +403,6 @@ public class MessagingNode implements Node {
 	//algorithm to find the ID in the routing table that is closest behind the destination
 	//It will never overshoot otherwise messages will bounce around
 	private int findClosestIDIndex(int destinationID) {
-		//start at this ID
-		//System.out.println("Destination: " + destinationID);
-		//System.out.println(table);
 
 		int closest = 128;
 		int routingIndex = -1;
@@ -423,6 +435,7 @@ public class MessagingNode implements Node {
 		System.out.println("Exiting");
 		try {
 		registrySocket.close();
+		System.exit(0);
 		} catch (IOException e) {
 			System.out.println("Socket already closed. Exiting");
 		}

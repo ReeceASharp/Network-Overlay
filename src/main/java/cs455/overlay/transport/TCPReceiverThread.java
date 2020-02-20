@@ -27,23 +27,24 @@ public class TCPReceiverThread implements Runnable {
 		this.node = node;
 		
 	}
-	 
+	
 	
 	@Override
 	public void run() {
 		int dataLength;
-		
 		while (socket != null) {
 			try {
 				//should block
 				//byte messageType = dataIn.readByte();
 				
+				byte[] incomingMessage = null;
 				dataLength = dataIn.readInt();
-				
-				System.out.println("Received a message length of: " + dataLength + ", from " + socket);
-				
-				byte[] incomingMessage = new byte[dataLength];
-				dataIn.readFully(incomingMessage, 0, dataLength);	
+
+				//System.out.println("Received a message length of: " + dataLength + ", from " + socket);
+				synchronized(socket) {
+				incomingMessage = new byte[dataLength];
+				dataIn.readFully(incomingMessage, 0, dataLength);
+				}
 				
 				Event e = EventFactory.getInstance().createEvent(incomingMessage);
 				
@@ -65,7 +66,6 @@ public class TCPReceiverThread implements Runnable {
 				System.out.println("Exception: '" + e + "'");
 			}
 		}
-		System.out.println("PIPE IS NOW CLOSED:" + socket);
 		try {
 			dataIn.close();
 		} catch (IOException e) {

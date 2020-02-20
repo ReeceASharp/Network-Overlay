@@ -20,7 +20,6 @@ public class OverlayNodeSendsRegistration implements Event {
 		this.port = port;
 	}
 	
-	
 	public OverlayNodeSendsRegistration(byte[] marshalledBytes) throws IOException {
 		//create a wrapper around the bytes to leverage some methods to easily extract values
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
@@ -45,7 +44,6 @@ public class OverlayNodeSendsRegistration implements Event {
 		din.close();		
 		
 	}
-	
 
 	@Override
 	public int getType() {

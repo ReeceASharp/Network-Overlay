@@ -13,6 +13,7 @@ public class InteractiveCommandParser implements Runnable {
 	Node node;
 	
 	private Scanner input = new Scanner(System.in);
+	private volatile boolean running = true;
 	
 	public InteractiveCommandParser(int type, Node node) {
 		this.type = type;
@@ -22,11 +23,15 @@ public class InteractiveCommandParser implements Runnable {
 	@Override
 	public void run() {
 		//System.out.println("InteractiveCommandParser::run");
-		while(true) {
+		while(running) {
 			//System.out.print("Input: ");
 			String command = input.nextLine();
 			parseInput(command);
 		}
+	}
+	
+	public void exit() {
+		running = false;
 	}
 	
 	//differentiate between what the interactiveCommandParser is listing

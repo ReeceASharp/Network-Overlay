@@ -15,17 +15,7 @@ public class EventFactory {
 	}
 	
 	public Event createEvent(byte[] marshalledBytes) throws IOException {
-		int value = 0;
-		try {
-			value = ByteBuffer.wrap( marshalledBytes ).getInt();
-		} catch (BufferUnderflowException e) {
-			e.getStackTrace();
-			System.out.println("Byte Size: " + marshalledBytes.length);
-		} catch (NullPointerException e) {
-			System.out.println("Empty Message");
-			e.getStackTrace();
-		}
-		//System.out.printf("EventFactory::createEvent: Value = %d%n", value);
+		int value = ByteBuffer.wrap( marshalledBytes ).getInt();
 		
 		switch (value) {
 			case 2:

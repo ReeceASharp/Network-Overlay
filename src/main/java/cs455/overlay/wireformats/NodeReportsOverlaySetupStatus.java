@@ -65,7 +65,7 @@ public class NodeReportsOverlaySetupStatus implements Event {
 			
 			dout.flush();
 			
-			System.out.printf("NodeReportsOverlaySetupStatus: ID: %d,'%s'%n", status, information);
+			//System.out.printf("NodeReportsOverlaySetupStatus: ID: %d,'%s'%n", status, information);
 			
 			message = byteOutStream.toByteArray();
 			byteOutStream.close();

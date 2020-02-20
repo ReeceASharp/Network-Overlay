@@ -38,10 +38,12 @@ public class Registry implements Node {
 	private int serverPort;
 	private RoutingTable[] tables;		//keep track of RoutingTables being sent to MessagingNodes
 	private boolean ready;
+	private boolean done;
 
 	public Registry() {
 		nodeList = new NodeList();
 		ready = false;
+		done = false;
 	}
 
 	@Override
@@ -60,12 +62,12 @@ public class Registry implements Node {
 	}
 	
 	private void listTables() {
-		System.out.println("Registry::listTables");
-		for (RoutingTable rt : tables) {
-			System.out.println(rt);
+		System.out.println("Routing Tables:");
+		for (int i = 0; i < nodeList.size(); i++) {
+			System.out.println(nodeList.get(i));
+			System.out.println(tables[i] + "\n");
 		}
 		
-		System.out.println(tables);
 	}
 
 	// node wants to deregister
@@ -85,21 +87,22 @@ public class Registry implements Node {
 		*/
 		
 		int status = nodeList.removeNode(deregistration.getIP(), deregistration.getPort());
+		String message = null;
 		if (status > -1) {
-			System.out.println("Removed Node:");
-			status = 5;
+			message = "Success: Node was removed from the Registry";
 		} else {
-			System.out.println("Didn't remove");
+			message = "Error: Node wasn't removed";
 		}	
 		
 
 		
-		byte[] marshalledBytes = new RegistryReportsDeregistrationStatus(status, "DEREGISTER TODO").getBytes();
+		byte[] marshalledBytes = new RegistryReportsDeregistrationStatus(status, message).getBytes();
 		sendMessage(socket, marshalledBytes);
 	}
 
 	// node wants to register with the registry
-	private synchronized void nodeRegistration(Event e, Socket socket) throws IOException {
+	private void nodeRegistration(Event e, Socket socket) throws IOException {
+		//System.out.println("RECEIVED NODE REGISTRATION REQUEST");
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
 		
 		String ip = registration.getIP();
@@ -134,7 +137,7 @@ public class Registry implements Node {
 		System.out.println(status.getInfo());
 		
 		//check that this is the last one
-		if (nodeList.readyToStart()) {
+		if (nodeList.readyToStart() && !ready) {
 			System.out.println("Ready to start!");
 			ready = true;
 		}
@@ -146,17 +149,36 @@ public class Registry implements Node {
 		
 		nodeList.getByID(task.getID()).setDone();
 		
+			if (nodeList.completelyDone() && !done) {
+				done = true;
+				int secondsToWait = 5;
+				System.out.printf("All nodes have Finished! Waiting %d seconds for message relay to complete.%n", secondsToWait);
+				//wait for messages to finish routing
+				try {
+					Thread.sleep(secondsToWait * 1000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				fetchResults();
+			}
+			
+	}
+	
+	private void fetchResults() {
+		System.out.println("Fetching results...");
+		byte[] marshalledBytes = new RegistryRequestsTrafficSummary().getBytes();
+		
+		
+		try {
+			for (int i = 0; i< nodeList.size(); i++) 
+				sendMessage(nodeList.get(i).getSocket(), marshalledBytes);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void onCommand(String[] command) {
-		/*
-		System.out.print("Registry::onCommand::Command_Length:" + command.length + ": ");
-		for (String s : command)
-			System.out.print("'" + s + "' ");
-		System.out.println();
-	 	*/
-
 		switch (command[0].toLowerCase()) {
 		case "list-messaging-nodes":
 			listNodes();
@@ -261,9 +283,6 @@ public class Registry implements Node {
 		}
 	}
 
-	// TODO: may need to synchronize this, as its setters and getters may be
-	// accessed simultaneously, but this is done at the very beginning, so
-	// multiple accesses aren't capable of happening
 	@Override
 	public void updateServerInfo(String ip, int port) {
 		serverIP = ip;
@@ -305,7 +324,6 @@ public class Registry implements Node {
 
 	@Override
 	public void exit() {
-		// TODO Auto-generated method stub
 		
 	}
 }

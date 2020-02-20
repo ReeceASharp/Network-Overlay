@@ -108,6 +108,17 @@ public class NodeList {
 	public synchronized void setReady(int index) {
 		nodes.get(index).setReady();
 	}
+	
+	public void setdone() {
+		
+	}
+	
+	public boolean completelyDone() {
+		for (NodeData nd : nodes)
+			if (!nd.done)
+				return false;
+		return true;
+	}
 
 	//only used by Registry (1 thread)
 	public synchronized int[] generateKnownIDs() {

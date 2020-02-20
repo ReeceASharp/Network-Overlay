@@ -13,6 +13,9 @@ public class RegistryRequestsTrafficSummary implements Event {
 	public int getType() {
 		return type;
 	}
+	
+	public RegistryRequestsTrafficSummary() { }
+	
 
 	@Override
 	public byte[] getBytes() {
@@ -23,10 +26,17 @@ public class RegistryRequestsTrafficSummary implements Event {
 		
 		try {
 			dout.writeByte(type);
+			dout.writeByte(type);
+			
+			marshalledBytes = byteOutStream.toByteArray();
+			
+			System.out.println("Bytes: " + marshalledBytes);
+			System.out.println("Size: " + marshalledBytes.length);
 		} catch (IOException e) {
 			//failed for some reason
 			System.out.println(e);
 		}
+		
 		
 		return marshalledBytes;
 	}
