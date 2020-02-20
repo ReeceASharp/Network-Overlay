@@ -20,16 +20,16 @@ public class MessagingNode implements Node {
 	volatile AtomicInteger packetsSent; 		// # of data messages sent, must be atomic
 	volatile AtomicInteger packetsRelayed;		// # of data messages relayed
 	volatile AtomicInteger packetsReceived; 	// # of data messages received, must be atomic
-	volatile AtomicLong sentSum;			// adding up the payloads being sent
-	volatile AtomicLong receivedSum;		// adding up the payloads being received
+	volatile AtomicLong sentSum;				// adding up the payloads being sent
+	volatile AtomicLong receivedSum;			// adding up the payloads being received
 
-	static final Random rng = new Random(); //node generator
-	private String serverIP;
-	private int serverPort;
-	private int id;
-	private Socket registrySocket;
-	private RoutingTable table;
-	private int[] knownIDs;
+	static final Random rng = new Random(); // node generator
+	private String serverIP;				// IP of serverSocket
+	private int serverPort;					// Port of serverSocket
+	private int id;							// Node ID inside Registry
+	private Socket registrySocket;			// connection to registry
+	private RoutingTable table;				// table of other MessagingNodes that can be sent to
+	private int[] knownIDs;					// other known MessagingNodes
 
 	private MessagingNode() {
 		registrySocket = null;
@@ -75,6 +75,7 @@ public class MessagingNode implements Node {
 		return;
 	}
 
+	//Node wants to register with the Registry, throw a message at it to check 
 	private static boolean sendRegistration(MessagingNode node, String host, int port) throws IOException {
 		//open a socket/connection with the registry
 		Socket registrySocket = new Socket(host, port);
@@ -93,11 +94,13 @@ public class MessagingNode implements Node {
 		return true;
 	}
 
+	//send the bytes through a specific connection via thread
 	private void sendMessage(Socket socket, byte[] marshalledBytes) throws IOException {
 		new Thread(new TCPSenderThread(socket, marshalledBytes)).start();
 	}
 
 
+	//Node wants to deregister from the Registered list in the Register, throw a message at it to see if it's possible
 	private boolean sendDeregistration() throws IOException {
 		byte[] message = new OverlayNodeSendsDeregistration(this.getServerIP(), 
 				this.getServerPort(), id).getBytes();
@@ -108,7 +111,7 @@ public class MessagingNode implements Node {
 		return true;
 	}
 
-
+	//handling the Protocol types passed via packages
 	@Override
 	public void onEvent(Event e, Socket socket) {
 
@@ -137,9 +140,8 @@ public class MessagingNode implements Node {
 
 	}
 
-
+	//package results to send back to the Registry for display
 	private void buildSummary(Event e) {
-		//build message of type OverlayNodeReportsTrafficSummary
 		//inside nodeData set whether all of the data has been received by the nodes before attempting to print out values
 		byte[] marshalledBytes = new OverlayNodeReportsTrafficSummary(id, packetsSent.get(), 
 				packetsRelayed.get(), sentSum.get(), packetsReceived.get(), receivedSum.get()).getBytes();
@@ -152,7 +154,7 @@ public class MessagingNode implements Node {
 		}
 	}
 
-
+	//Received the go-ahead from the Registry to begin sending off
 	private void startPacketSending(Event e) {
 		RegistryRequestsTaskInitiate init = (RegistryRequestsTaskInitiate) e;
 		System.out.println("Starting Task...");
@@ -206,6 +208,7 @@ public class MessagingNode implements Node {
 
 	}
 	
+	//used to reset counters in between runs, allows for multiple runs on the same overlay
 	private void resetCounters() {
 		packetsSent.set(0);
 		packetsRelayed.set(0);	
@@ -214,12 +217,13 @@ public class MessagingNode implements Node {
 		receivedSum.set(0);
 	}
 
-	//handle the event
+	//Packet processing, handles the relay and collection of data messages from other MessagingNodes
 	private void dataPacketProcess(Event temp) {
 		OverlayNodeSendsData data = (OverlayNodeSendsData) temp;
 		//check if the node goes here, otherwise relay
 		if (data.getDestinationID() == id) {
 
+			//add payload to running total
 			receivedSum.addAndGet(data.getPayload());
 
 			//increment received
@@ -264,6 +268,7 @@ public class MessagingNode implements Node {
 		}
 	}
 
+	//setting up connections from the list of information received from the Registry
 	private void routingSetup(Event e) {
 		RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) e;
 		//give the message data to the table, will setup the connections as well
@@ -287,7 +292,7 @@ public class MessagingNode implements Node {
 
 	}
 
-
+	//When the node received a message back from the Registry about deregistration
 	private void deregistationStatus(Event e) {
 		RegistryReportsDeregistrationStatus message = (RegistryReportsDeregistrationStatus) e;
 
@@ -300,7 +305,7 @@ public class MessagingNode implements Node {
 		exit();
 	}
 
-
+	//When the node received a message back from the Registry about registration
 	private void registrationStatus(Event e) {
 		RegistryReportsRegistrationStatus message = (RegistryReportsRegistrationStatus) e;
 
@@ -323,7 +328,6 @@ public class MessagingNode implements Node {
 		switch (command[0].toLowerCase()) {
 		case "print-counters-and-diagnostics":
 			printResults();
-			//TODO
 			break;
 		case "exit-overlay":
 			try {
@@ -333,12 +337,13 @@ public class MessagingNode implements Node {
 			}
 			break;
 		default:
-			System.out.println("Should never reach this");
+			System.out.println("Error. Invalid command received");
 		}
 
 	}
 
-	public int getRandomKnownNode() {
+	//find a node in the knownlist that isn't itself
+	private int getRandomKnownNode() {
 		int index = -1;
 		int knownSize = knownIDs.length;	//save to streamline queries
 
@@ -352,6 +357,7 @@ public class MessagingNode implements Node {
 		return knownIDs[index];
 	}
 
+	//print saved results from a run
 	public void printResults() {
 		System.out.println("Results");
 		System.out.println("********");

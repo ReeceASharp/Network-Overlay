@@ -77,7 +77,7 @@ public class Registry implements Node {
 
 	}
 
-	// node wants to deregister
+	//Received a message that a node wants to register, remove if possible, and respond to node on status
 	private synchronized void nodeDeregistration(Event e, Socket socket) throws IOException {
 		OverlayNodeSendsDeregistration deregistration = (OverlayNodeSendsDeregistration) e;
 
@@ -105,7 +105,7 @@ public class Registry implements Node {
 		sendMessage(socket, marshalledBytes);
 	}
 
-	// node wants to register with the registry
+	// node wants to register with the registry, check if possible, and respond with results to node
 	private synchronized void nodeRegistration(Event e, Socket socket) throws IOException {
 
 		OverlayNodeSendsRegistration registration = (OverlayNodeSendsRegistration) e;
@@ -131,6 +131,7 @@ public class Registry implements Node {
 		sendMessage(socket, marshalledBytes);
 	}
 
+	//A messaging node has sent in some results on the latest routing run of the overlay
 	private void nodeReportTraffic(Event e) {
 		OverlayNodeReportsTrafficSummary summary = (OverlayNodeReportsTrafficSummary) e;
 		int index = nodeList.getIndex(summary.getID());
@@ -146,7 +147,8 @@ public class Registry implements Node {
 		}
 	}
 
-	// node is reporting its status
+	// node is reporting its status of setting its connections in the overlay
+	// when all of the nodes have finished allow the starting of the overlay
 	private void nodeSetupStatus(Event e) {
 		NodeReportsOverlaySetupStatus status = (NodeReportsOverlaySetupStatus) e;
 
@@ -161,6 +163,9 @@ public class Registry implements Node {
 		}
 	}
 
+	// A node is responding that it was able to successfully send out 'x' amount of messages
+	// when all of the nodes have sent this in, wait a bit and then send out a request for all of 
+	// their results
 	private void nodeTaskFinished(Event e) {
 		OverlayNodeReportsTaskFinished task = (OverlayNodeReportsTaskFinished) e;
 
@@ -181,6 +186,7 @@ public class Registry implements Node {
 
 	}
 
+	// gathering results from each of the nodes
 	private void fetchResults() {
 		System.out.println("Fetching results...");
 		byte[] marshalledBytes = new RegistryRequestsTrafficSummary().getBytes();
@@ -193,6 +199,7 @@ public class Registry implements Node {
 		}
 	}
 
+	//handling user-input
 	@Override
 	public void onCommand(String[] command) {
 		switch (command[0].toLowerCase()) {
@@ -214,6 +221,7 @@ public class Registry implements Node {
 
 	}
 
+	//message routing
 	@Override
 	public void onEvent(Event e, Socket socket)  {
 		try {
@@ -243,10 +251,12 @@ public class Registry implements Node {
 		}
 	}
 
+	//send the bytes through a specific connection via thread
 	private void sendMessage(Socket socket, byte[] marshalledBytes) throws IOException {
 		new Thread(new TCPSenderThread(socket, marshalledBytes)).start();
 	}
 
+	// Send out a list of specific node IP:port data to seach node so it can set up its connections
 	private void setupOverlay(String[] command) {
 		//get parameter, and hopefully n <= (2^n)-1
 		if (command.length != 2) {
@@ -290,7 +300,7 @@ public class Registry implements Node {
 		}
 	}
 
-	//bases its information off of the data inside of nodeList
+	// creating each routing list to be passed to the nodes
 	private void setupRoutingTables(int tableSize) {
 		tables = new RoutingTable[nodeList.size()];
 
@@ -305,15 +315,13 @@ public class Registry implements Node {
 		serverPort = port;
 	}
 
-
+	// Sending a message to each of the nodes in the overlay to begin sending out 'x' packages
 	private void sendInitiate(String[] command) {
 		//check that the system is setup
 		if (!ready) {
 			System.out.println("Error: Not Ready to send");
 			return;
 		}
-		
-		
 
 		//check message for validity
 		if (command.length == 2 && (Integer.parseInt(command[1]) > 0)) {

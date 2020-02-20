@@ -6,12 +6,12 @@ import java.util.Scanner;
 import cs455.overlay.node.Node;
 import cs455.overlay.wireformats.Protocol;
 
+//Console input for each of the nodes
 public class InteractiveCommandParser implements Runnable {
 	int type;
 	Node node;
 	
-	private Scanner input = new Scanner(System.in);
-	private volatile boolean running = true;
+	private Scanner input = new Scanner(System.in);	//keyboard input
 	
 	public InteractiveCommandParser(int type, Node node) {
 		this.type = type;
@@ -20,14 +20,10 @@ public class InteractiveCommandParser implements Runnable {
 	
 	@Override
 	public void run() {
-		while(running) {
+		while(true) {
 			String command = input.nextLine();
 			parseInput(command);
 		}
-	}
-	
-	public void exit() {
-		running = false;
 	}
 	
 	//differentiate between what the interactiveCommandParser is listing
@@ -38,6 +34,7 @@ public class InteractiveCommandParser implements Runnable {
 			parseMessaging(input);
 	}
 	
+	//get command for MessagingNode
 	private void parseMessaging(String input) {
 		String[] args = input.split(" ");
 		
@@ -48,19 +45,17 @@ public class InteractiveCommandParser implements Runnable {
 			help();
 	}
 	
+	//get command for Registry
 	private void parseRegistry(String input) {
 		String[] args = input.split(" ");
-		
-		
 		if (Arrays.asList(Commands.REGISTER_COMMANDS).contains(args[0]))
 			node.onCommand(args);
 		else
 			help();
 	}
 	
-	/*
-	 * 
-	 */
+	//I kept forgetting the commands, and wanted a quick source to copy and paste
+	//hopefully this doesn't count as a gui
 	private void help() {
 		System.out.println("Available Commands: ");
 		System.out.println("*******************");
