@@ -42,7 +42,7 @@ public class TCPServerThread implements Runnable {
 	public void run() {
 
 		//System.out.printf("Address: %s, Port: %s %n", serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
-		System.out.printf("TCPServer on %s%n", serverSocket.getLocalPort());
+		System.out.printf("Server listening on Port:%s%n", serverSocket.getLocalPort());
 		//listen for new connections to this program
 		try {
 			while (true) {

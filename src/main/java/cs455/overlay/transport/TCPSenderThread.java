@@ -7,7 +7,6 @@ import java.net.Socket;
 public class TCPSenderThread implements Runnable {
 	private Socket socket;
 	private byte[] msg;
-	private Object lock = new Object();
 	
 	public TCPSenderThread(Socket socket, byte[] msg) {
 		this.socket = socket;

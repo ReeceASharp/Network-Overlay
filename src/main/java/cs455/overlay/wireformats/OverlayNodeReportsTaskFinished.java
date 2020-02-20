@@ -77,8 +77,6 @@ public class OverlayNodeReportsTaskFinished implements Event {
 			//ensure all is written before the buffer is converted to a byte array
 			dout.flush();
 			
-
-
 			marshalledBytes = byteOutStream.toByteArray();
 			
 			byteOutStream.close();

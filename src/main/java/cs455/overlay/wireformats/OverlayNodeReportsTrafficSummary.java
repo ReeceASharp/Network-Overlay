@@ -56,21 +56,31 @@ public class OverlayNodeReportsTrafficSummary implements Event {
 
 	@Override
 	public byte[] getBytes() {
+		byte[] marshalledBytes = null;
 		
 		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
 		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
 		try {
 			dout.writeInt(type);
+			
+			dout.writeInt(id);
 			dout.writeInt(sentPackets);
 			dout.writeInt(relayedPackets);
 			dout.writeLong(payloadSentSum);
 			dout.writeInt(receivedPackets);
 			dout.writeLong(payloadReceivedSum);
+			
+			dout.flush();
+			
+			marshalledBytes = byteOutStream.toByteArray();
+			
+			byteOutStream.close();
+			dout.close();
 		} catch (IOException e) {
 			//failed for some reason
 			System.out.println(e);
 		}
-		return null;
+		return marshalledBytes;
 	}
 	
 	public int getID() {

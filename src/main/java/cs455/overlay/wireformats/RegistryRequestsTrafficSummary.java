@@ -8,30 +8,34 @@ import java.io.IOException;
 public class RegistryRequestsTrafficSummary implements Event {
 	private static final int type = Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY;
 
-
 	@Override
 	public int getType() {
 		return type;
 	}
 	
-	public RegistryRequestsTrafficSummary() { }
+	public RegistryRequestsTrafficSummary() {
+		System.out.println("Creating Summary");
+	}
 	
 
 	@Override
 	public byte[] getBytes() {
+		System.out.println("Getting Information");
+		
 		byte[] marshalledBytes = null;
 		
 		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
 		DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(byteOutStream));
 		
 		try {
-			dout.writeByte(type);
-			dout.writeByte(type);
+			dout.writeInt(type);
+			
+			dout.flush();
 			
 			marshalledBytes = byteOutStream.toByteArray();
 			
-			System.out.println("Bytes: " + marshalledBytes);
-			System.out.println("Size: " + marshalledBytes.length);
+			byteOutStream.close();
+			dout.close();
 		} catch (IOException e) {
 			//failed for some reason
 			System.out.println(e);

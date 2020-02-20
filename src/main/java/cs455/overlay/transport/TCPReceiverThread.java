@@ -31,7 +31,7 @@ public class TCPReceiverThread implements Runnable {
 	
 	@Override
 	public void run() {
-		int dataLength;
+		int dataLength = -1;
 		while (socket != null) {
 			try {
 				//should block
@@ -42,8 +42,8 @@ public class TCPReceiverThread implements Runnable {
 
 				//System.out.println("Received a message length of: " + dataLength + ", from " + socket);
 				synchronized(socket) {
-				incomingMessage = new byte[dataLength];
-				dataIn.readFully(incomingMessage, 0, dataLength);
+					incomingMessage = new byte[dataLength];
+					dataIn.readFully(incomingMessage, 0, dataLength);
 				}
 				
 				Event e = EventFactory.getInstance().createEvent(incomingMessage);
@@ -58,7 +58,10 @@ public class TCPReceiverThread implements Runnable {
 				System.out.println("TCPReceiverThread::run::socketException: " + se.getMessage());
 				break;
 			} catch (IOException ioe) {
-				System.out.println("Socket unexpectedly closed, no longer listening to: " + socket.getRemoteSocketAddress());
+				
+				System.out.println("DataLength: " + dataLength);
+				System.out.println("Socket unexpectedly closed, no longer listening to: " + socket.getRemoteSocketAddress() + 
+						", DataLength: " + dataLength);
 				//TODO: at this point the thread should call the node to remove this data from its registry
 				break;
 			} catch (Exception e) {

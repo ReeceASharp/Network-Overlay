@@ -69,7 +69,7 @@ public class NodeList {
 	
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
-	private synchronized int contains(String ip, int port) {
+	private int contains(String ip, int port) {
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
 				return i;
@@ -77,7 +77,8 @@ public class NodeList {
 		
 	}
 	
-	public synchronized NodeData getByID(int id) {
+	//return the NodeData object associated with the ID passed
+	public NodeData getByID(int id) {
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getID() == id) {
 				return nodes.get(i);
@@ -85,9 +86,20 @@ public class NodeList {
 		return null;
 	}
 	
-	public synchronized NodeData get(int i) {
+	public int getIndex(int id) {
+		for (int i = 0; i < nodes.size(); i++)
+			if (nodes.get(i).getID() == id) {
+				return i;
+			}
+		return -1;
+	}
+	
+	//return the NodeData
+	public NodeData get(int i) {
 		return nodes.get(i);
 	}
+	
+	
 	
 	public synchronized int size() {
 		return nodes.size();
@@ -105,13 +117,10 @@ public class NodeList {
 		return true;
 	}
 	
-	public synchronized void setReady(int index) {
+	public void setReady(int index) {
 		nodes.get(index).setReady();
 	}
 	
-	public void setdone() {
-		
-	}
 	
 	public boolean completelyDone() {
 		for (NodeData nd : nodes)

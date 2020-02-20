@@ -1,7 +1,6 @@
 package cs455.overlay.wireformats;
 
 import java.io.IOException;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 public class EventFactory {

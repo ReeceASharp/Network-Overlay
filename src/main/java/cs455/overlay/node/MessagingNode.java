@@ -15,8 +15,6 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.imageio.spi.RegisterableService;
-
 
 public class MessagingNode implements Node {
 	volatile AtomicInteger packetsSent; 		// # of data messages sent, must be atomic
@@ -32,10 +30,6 @@ public class MessagingNode implements Node {
 	private Socket registrySocket;
 	private RoutingTable table;
 	private int[] knownIDs;
-	
-	private Thread server;
-	private Thread parser;
-	
 	
 	private MessagingNode() {
 		registrySocket = null;
@@ -57,12 +51,11 @@ public class MessagingNode implements Node {
 		InetAddress ip = InetAddress.getLocalHost();
 		String host = ip.getHostName();
 
-		System.out.printf("Host: %s, HostIP: %s%n",
+		System.out.printf("Host: %s, HostIP: %s,",
 				host, ip.getHostAddress());
 		
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
-
 
 		// start server to listen for incoming connections
 		Thread server = new Thread(new TCPServerThread(node));
@@ -74,7 +67,7 @@ public class MessagingNode implements Node {
 		// *** init
 		
 		try {
-			
+			//sleep for .1 seconds while the Threads get setup
 			sendRegistration(node, registryHost, registryPort);
 		} catch (IOException e) {
 			System.out.printf("Wasn't able to connect to: %s:%d%n", registryHost, registryPort);
@@ -150,11 +143,10 @@ public class MessagingNode implements Node {
 	private void buildSummary(Event e) {
 		//build message of type OverlayNodeReportsTrafficSummary
 		//inside nodeData set whether all of the data has been received by the nodes before attempting to print out values
-		System.out.println("MessagingNode::buildSummary::TODO");
-		
 		byte[] marshalledBytes = new OverlayNodeReportsTrafficSummary(id, packetsSent.get(), 
 				packetsRelayed.get(), sentSum.get(), packetsReceived.get(), receivedSum.get()).getBytes();
 		
+		System.out.println("Sending results back to Registry");
 		try {
 			sendMessage(registrySocket, marshalledBytes);
 		} catch (IOException e1) {
@@ -262,9 +254,6 @@ public class MessagingNode implements Node {
 			else {
 				visited = new int[]{id};
 			}
-			
-
-			
 			
 			if (visitedTotal != visited.length) {
 				//System.out.println("NODE VISITED TOTAL:" + visitedTotal + ", Array total:" + visited.length + ", DONT MATCH");

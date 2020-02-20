@@ -8,6 +8,7 @@ import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPSenderThread;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
+import cs455.overlay.util.StatisticsCollectorAndDisplay;
 import cs455.overlay.wireformats.*;
 
 public class Registry implements Node {
@@ -37,8 +38,12 @@ public class Registry implements Node {
 	private String serverIP;					//
 	private int serverPort;
 	private RoutingTable[] tables;		//keep track of RoutingTables being sent to MessagingNodes
-	private boolean ready;
+	private StatisticsCollectorAndDisplay display;
+	private int[] knownIDs;
+	
+	private boolean ready;		//flags to help allow only 1 thread inside
 	private boolean done;
+	
 
 	public Registry() {
 		nodeList = new NodeList();
@@ -111,7 +116,7 @@ public class Registry implements Node {
 		int id = nodeList.insertNode(ip, port, socket);
 		String message;
 		if (id > -1) {
-			message = new String("Success: MessagingNode was added to Registry");
+			message = new String("Success: MessagingNode was added to Registry, ID: " + id);
 		} else {
 			message = new String("Error: MessagingNode was not added. Registry already contains a node with this IP:Port combination.");
 		}
@@ -124,8 +129,20 @@ public class Registry implements Node {
 
 	private void nodeReportTraffic(Event e) {
 		System.out.println("nodeReportTraffic()");
+		OverlayNodeReportsTrafficSummary summary = (OverlayNodeReportsTrafficSummary) e;
+		int index = nodeList.getIndex(summary.getID());
 		
+		//pull data from message and put it into the display
+		display.setResult(index, summary.getSentPackets(), summary.getReceivedPackets(), summary.getRelayedPackets(),
+				summary.getPayloadSentSum(), summary.getPayloadReceivedSum());
 		
+		synchronized(this) {
+			if (!display.missingData()) {
+				System.out.println("Printing Display");
+				System.out.println(display);
+				display.reset();
+			}
+		}
 	}
 
 	// node is reporting its status
@@ -138,8 +155,10 @@ public class Registry implements Node {
 		
 		//check that this is the last one
 		if (nodeList.readyToStart() && !ready) {
-			System.out.println("Ready to start!");
 			ready = true;
+			System.out.println("Registry now ready to initiate tasks.");
+			//setup Statistics of nodeList size to hold the message values
+			display = new StatisticsCollectorAndDisplay(nodeList.size(), knownIDs);
 		}
 	}
 
@@ -167,7 +186,6 @@ public class Registry implements Node {
 	private void fetchResults() {
 		System.out.println("Fetching results...");
 		byte[] marshalledBytes = new RegistryRequestsTrafficSummary().getBytes();
-		
 		
 		try {
 			for (int i = 0; i< nodeList.size(); i++) 
@@ -245,13 +263,14 @@ public class Registry implements Node {
 			System.out.println("Error: Invalid overlay size: " + tableSize);
 			return;
 		}
-		
+		//ascending order, allows simple indexing to generate the tables
 		nodeList.sort();
 		
 		//setup tables
 		setupRoutingTables(tableSize);
 		
-		int[] knownIDs = nodeList.generateKnownIDs();
+		//save to pass into display later
+		knownIDs = nodeList.generateKnownIDs();
 		
 		//start the sendout if necessary
 		RoutingTable temp;
