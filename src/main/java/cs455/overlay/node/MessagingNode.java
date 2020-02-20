@@ -156,6 +156,10 @@ public class MessagingNode implements Node {
 	private void startPacketSending(Event e) {
 		RegistryRequestsTaskInitiate init = (RegistryRequestsTaskInitiate) e;
 		System.out.println("Starting Task...");
+		
+		//reset counters
+		resetCounters();
+		
 		int maxSending = init.getPacketsToSend();
 
 		for (int i = 0; i < maxSending; i++) {
@@ -201,6 +205,14 @@ public class MessagingNode implements Node {
 		}
 
 	}
+	
+	private void resetCounters() {
+		packetsSent.set(0);
+		packetsRelayed.set(0);	
+		packetsReceived.set(0); 
+		sentSum.set(0);	
+		receivedSum.set(0);
+	}
 
 	//handle the event
 	private void dataPacketProcess(Event temp) {
@@ -216,16 +228,11 @@ public class MessagingNode implements Node {
 		}
 		else {
 			//find node in routing list, or send it somewhere else
-			Socket socket = null;
 			int index = table.contains(data.getDestinationID());
-			if (index > -1) {
-				socket = table.get(index).getEntrySocket();
-			}
-			else {
+			if (index == -1) {
 				index = findClosestIDIndex(data.getDestinationID());
-				socket = table.get(index).getEntrySocket();
 			}
-
+			Socket socket = table.get(index).getEntrySocket();
 			//increment relay
 			packetsRelayed.incrementAndGet();
 
@@ -263,7 +270,7 @@ public class MessagingNode implements Node {
 		table = new RoutingTable(manifest.getNodes());
 		knownIDs = manifest.getKnownIDs();
 
-		System.out.println("Received Overlay Routing Table from the Registry:\n" + table);
+		System.out.println("Received Overlay Routing Table from the Registry");
 
 		//open and save the connections
 		table.openConnections();
@@ -315,7 +322,7 @@ public class MessagingNode implements Node {
 
 		switch (command[0].toLowerCase()) {
 		case "print-counters-and-diagnostics":
-			System.out.println("PRINTING");
+			printResults();
 			//TODO
 			break;
 		case "exit-overlay":
@@ -345,6 +352,23 @@ public class MessagingNode implements Node {
 		return knownIDs[index];
 	}
 
+	public void printResults() {
+		System.out.println("Results");
+		System.out.println("********");
+		
+		System.out.printf(  
+				"%-25s%-20d%n" +
+				"%-25s%-20d%n" +
+				"%-25s%-20d%n" +
+				"%-25s%-20d%n" +
+				"%-25s%-20d%n",
+				"Packets Sent:", packetsSent.get(), 
+				"Packets Relayed:", packetsRelayed.get(), 
+				"Packets Received", packetsReceived.get(), 
+				"Payload Sent Sum:", sentSum.get(), 
+				"Payload Received Sum:", receivedSum.get());
+		
+	}
 
 	/*
 	 * Necessary for the ability to send the registration to the Registry, because this

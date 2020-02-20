@@ -46,6 +46,7 @@ public class Registry implements Node {
 	private boolean printing;
 
 	public Registry() {
+		
 		nodeList = new NodeList();
 		ready = false;
 		done = false;
@@ -117,7 +118,6 @@ public class Registry implements Node {
 			id = nodeList.insertNode(ip, port, socket);
 		}
 
-
 		String message;
 		if (id > -1) {
 			message = String.format("Success: MessagingNode added with ID #%d, there are currently (%d) node(s)%n",id, nodeList.size());
@@ -168,8 +168,8 @@ public class Registry implements Node {
 
 		if (nodeList.completelyDone() && !done) {
 			done = true;
-			int secondsToWait = 5;
-			System.out.printf("All nodes have Finished! Waiting %d seconds for message relay to complete.%n", secondsToWait);
+			int secondsToWait = 10;
+			System.out.printf("All nodes have finished. Waiting %d seconds for message relay to complete.%n", secondsToWait);
 			//wait for messages to finish routing
 			try {
 				Thread.sleep(secondsToWait * 1000);
@@ -285,7 +285,6 @@ public class Registry implements Node {
 			try {
 				sendMessage(nodeList.get(i).getSocket(), marshalledBytes);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -313,9 +312,17 @@ public class Registry implements Node {
 			System.out.println("Error: Not Ready to send");
 			return;
 		}
+		
+		
 
 		//check message for validity
 		if (command.length == 2 && (Integer.parseInt(command[1]) > 0)) {
+			//allows for multiple runs on same overlay
+			nodeList.restart();
+			done = false;
+			printing = false;
+			display.reset();
+			
 			System.out.println("Initializing nodes...");
 			byte[] marshalledBytes = new RegistryRequestsTaskInitiate(Integer.parseInt(command[1])).getBytes();
 
@@ -330,13 +337,6 @@ public class Registry implements Node {
 		else
 			System.out.println("Invalid Start parameters");
 
-	}
-
-
-	//when each message comes through it checks to see if the other nodes are ready to go
-	//
-	public void setReady() {
-		ready = true;
 	}
 
 	//empty, only used inside of MessengingNode to exit upon losing connection with the Registry

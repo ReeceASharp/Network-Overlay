@@ -115,10 +115,15 @@ public class NodeList {
 		return true;
 	}
 	
+	//internal method to set the status of each node
 	public void setReady(int index) {
 		nodes.get(index).setReady();
 	}
 	
+	public void restart() {
+		for (NodeData nd : nodes)
+			nd.reset();
+	}
 	
 	public boolean completelyDone() {
 		for (NodeData nd : nodes)

@@ -7,8 +7,6 @@ import cs455.overlay.node.Node;
 import cs455.overlay.wireformats.Protocol;
 
 public class InteractiveCommandParser implements Runnable {
-	
-	
 	int type;
 	Node node;
 	

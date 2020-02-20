@@ -30,7 +30,6 @@ public class OverlayNodeReportsTrafficSummary implements Event {
 	
 
 	public OverlayNodeReportsTrafficSummary(byte[] marshalledBytes) throws IOException {
-		// TODO Auto-generated constructor stub
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
 		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 		

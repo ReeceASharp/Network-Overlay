@@ -20,11 +20,9 @@ public class TCPReceiverThread implements Runnable {
 	private Node node;
 	
 	public TCPReceiverThread(Socket socket, Node node) throws IOException {
-		//pg 9, 4.1
 		this.socket = socket;
 		dataIn = new DataInputStream(socket.getInputStream());
 		this.node = node;
-		
 	}
 	
 	
@@ -37,13 +35,13 @@ public class TCPReceiverThread implements Runnable {
 				//byte messageType = dataIn.readByte();
 				
 				byte[] incomingMessage = null;
-				dataLength = dataIn.readInt();
 
+				dataLength = dataIn.readInt();
 				//synchronize reads from a socket to make sure it's all read in chunks
-				synchronized(socket) {
+				//synchronized(socket) {
 					incomingMessage = new byte[dataLength];
 					dataIn.readFully(incomingMessage, 0, dataLength);
-				}
+				//}
 				
 				Event e = EventFactory.getInstance().createEvent(incomingMessage);
 				
