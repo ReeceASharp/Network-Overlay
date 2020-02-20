@@ -22,7 +22,7 @@ public class MessagingNode implements Node {
 	volatile AtomicInteger packetsReceived; 	// # of data messages received, must be atomic
 	volatile AtomicLong sentSum;			// adding up the payloads being sent
 	volatile AtomicLong receivedSum;		// adding up the payloads being received
-	
+
 	static final Random rng = new Random(); //node generator
 	private String serverIP;
 	private int serverPort;
@@ -30,84 +30,84 @@ public class MessagingNode implements Node {
 	private Socket registrySocket;
 	private RoutingTable table;
 	private int[] knownIDs;
-	
+
 	private MessagingNode() {
 		registrySocket = null;
 		id = -1;
-		
+
 		packetsSent = new AtomicInteger();
 		packetsRelayed = new AtomicInteger();
 		packetsReceived = new AtomicInteger();
-		
+
 		sentSum = new AtomicLong();
 		receivedSum = new AtomicLong();	
 	}
-	
-	
+
+
 	public static void main(String[] args) throws IOException {
 		String registryHost = args[0];
 		int registryPort = Integer.parseInt(args[1]);
-		
+
 		InetAddress ip = InetAddress.getLocalHost();
 		String host = ip.getHostName();
 
 		System.out.printf("Host: %s, HostIP: %s, ", host, ip.getHostAddress());
-		
+
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
 
 		// start server to listen for incoming connections
 		Thread server = new Thread(new TCPServerThread(node));
 		server.start();
-		
+
 		//start the interactive client
 		Thread parser = new Thread(new InteractiveCommandParser(Protocol.MESSAGING, node));
 		parser.start();
 		// *** init
-		
+
 		try {
 			sendRegistration(node, registryHost, registryPort);
 		} catch (IOException e) {
 			System.out.printf("Wasn't able to connect to: %s:%d%n", registryHost, registryPort);
 			System.exit(0);
 		}
-	
+
 		return;
 	}
-	
+
 	private static boolean sendRegistration(MessagingNode node, String host, int port) throws IOException {
 		//open a socket/connection with the registry
 		Socket registrySocket = new Socket(host, port);
 		node.setRegistrySocket(registrySocket);
-		
+
 		//construct the message, and get the bytes
 		byte[] marshalledBytes = new OverlayNodeSendsRegistration(node.getServerIP(), node.getServerPort()).getBytes();
-		
+
 		//create a listener on this socket for the response from the Registry
 		Thread receiver = new Thread(new TCPReceiverThread(registrySocket, node));
 		receiver.start();
 
 		//Send the message to the Registry to attempt registration
 		node.sendMessage(registrySocket, marshalledBytes);
-		
+
 		return true;
 	}
-	
+
 	private void sendMessage(Socket socket, byte[] marshalledBytes) throws IOException {
 		new Thread(new TCPSenderThread(socket, marshalledBytes)).start();
 	}
-	
-	
+
+
 	private boolean sendDeregistration() throws IOException {
 		byte[] message = new OverlayNodeSendsDeregistration(this.getServerIP(), 
 				this.getServerPort(), id).getBytes();
-		
+
 		//create a thread with the Registry socket, and the message going to it
 		sendMessage(registrySocket, message);
 
 		return true;
 	}
-	
+
 
 	@Override
 	public void onEvent(Event e, Socket socket) {
@@ -143,7 +143,7 @@ public class MessagingNode implements Node {
 		//inside nodeData set whether all of the data has been received by the nodes before attempting to print out values
 		byte[] marshalledBytes = new OverlayNodeReportsTrafficSummary(id, packetsSent.get(), 
 				packetsRelayed.get(), sentSum.get(), packetsReceived.get(), receivedSum.get()).getBytes();
-		
+
 		System.out.println("Sending results back to Registry");
 		try {
 			sendMessage(registrySocket, marshalledBytes);
@@ -157,17 +157,17 @@ public class MessagingNode implements Node {
 		RegistryRequestsTaskInitiate init = (RegistryRequestsTaskInitiate) e;
 		System.out.println("Starting Task...");
 		int maxSending = init.getPacketsToSend();
-		
+
 		for (int i = 0; i < maxSending; i++) {
 			int destinationID = getRandomKnownNode();
 			int payload = rng.nextInt();
 			Event temp = (Event) new OverlayNodeSendsData(destinationID, id, payload, 0, new int[] {});
-			
+
 			//increment sent
 			packetsSent.incrementAndGet();
 			//add up payload being sent
 			sentSum.addAndGet(payload);
-			
+
 			//find socket of closest packet
 			int index = table.contains(destinationID);
 			Socket socket;
@@ -180,7 +180,7 @@ public class MessagingNode implements Node {
 
 				socket = table.get(index).getEntrySocket();
 			}
-			
+
 			//send it off, don't use dataPacketProcess as that will incorrectly increment the relay
 			byte[] marshalledBytes = temp.getBytes();
 			try {
@@ -191,31 +191,28 @@ public class MessagingNode implements Node {
 		}
 		//send task completion to Registry
 		System.out.printf("Finished Task. Sent: %d, Total: %d%n", packetsSent.get(), sentSum.get());
-		
+
 		byte[] marshalledBytes = new OverlayNodeReportsTaskFinished(serverIP, serverPort, id).getBytes();
-		
+
 		try {
 			sendMessage(registrySocket, marshalledBytes);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		
+
 	}
 
 	//handle the event
 	private void dataPacketProcess(Event temp) {
 		OverlayNodeSendsData data = (OverlayNodeSendsData) temp;
-		
-
-		
 		//check if the node goes here, otherwise relay
 		if (data.getDestinationID() == id) {
-			
+
 			receivedSum.addAndGet(data.getPayload());
-			
+
 			//increment received
 			packetsReceived.incrementAndGet();
-			
+
 		}
 		else {
 			//find node in routing list, or send it somewhere else
@@ -223,14 +220,12 @@ public class MessagingNode implements Node {
 			int index = table.contains(data.getDestinationID());
 			if (index > -1) {
 				socket = table.get(index).getEntrySocket();
-				
 			}
 			else {
 				index = findClosestIDIndex(data.getDestinationID());
-
 				socket = table.get(index).getEntrySocket();
 			}
-			
+
 			//increment relay
 			packetsRelayed.incrementAndGet();
 
@@ -245,25 +240,21 @@ public class MessagingNode implements Node {
 			else {
 				visited = new int[]{id};
 			}
-			
+
 			if (visitedTotal != visited.length) {
 				return;
 			}
 			else {
 				byte[] marshalledBytes = new OverlayNodeSendsData(data.getDestinationID(), data.getSourceID(), data.getPayload(),
 						visitedTotal, visited).getBytes();
-			
-			try {
-				sendMessage(socket, marshalledBytes);
-			} catch (IOException e) {
-				
-				e.printStackTrace();
-			}
+
+				try {
+					sendMessage(socket, marshalledBytes);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
-		
-		
-		
 	}
 
 	private void routingSetup(Event e) {
@@ -271,22 +262,22 @@ public class MessagingNode implements Node {
 		//give the message data to the table, will setup the connections as well
 		table = new RoutingTable(manifest.getNodes());
 		knownIDs = manifest.getKnownIDs();
-		
+
 		System.out.println("Received Overlay Routing Table from the Registry:\n" + table);
-		
+
 		//open and save the connections
 		table.openConnections();
-		
+
 		byte[] marshalledBytes = new NodeReportsOverlaySetupStatus(id, String.format("Success: Node #%d finished setup", id)).getBytes();
-		
-		
+
+
 		try {
 			sendMessage(registrySocket, marshalledBytes);
 		} catch (IOException e1) {
 			System.out.println("Failed to Send Message");
 			e1.printStackTrace();
 		}
-		
+
 	}
 
 
@@ -295,8 +286,8 @@ public class MessagingNode implements Node {
 
 		//register handles message, simply output what the result is
 		System.out.printf("%s ID: %d%n", message.getInfo(), message.getStatus());
-		
-		
+
+
 		//After receiving a deregistration acknowledgement, either the it was successful, or it wasn't
 		//either way, the MessagingNode has no way of connecting again, so exit
 		exit();
@@ -305,10 +296,10 @@ public class MessagingNode implements Node {
 
 	private void registrationStatus(Event e) {
 		RegistryReportsRegistrationStatus message = (RegistryReportsRegistrationStatus) e;
-		
+
 		//updates the id, it'll either stay at the initialized value of -1, or update to a valid ID
 		id = message.getStatus();
-		
+
 		//print out message
 		System.out.println(message.getInfo());
 	}
@@ -321,7 +312,7 @@ public class MessagingNode implements Node {
 
 	@Override
 	public void onCommand(String[] command) {
-	
+
 		switch (command[0].toLowerCase()) {
 		case "print-counters-and-diagnostics":
 			System.out.println("PRINTING");
@@ -337,20 +328,20 @@ public class MessagingNode implements Node {
 		default:
 			System.out.println("Should never reach this");
 		}
-		
+
 	}
-	
+
 	public int getRandomKnownNode() {
 		int index = -1;
 		int knownSize = knownIDs.length;	//save to streamline queries
-		
+
 		boolean valid = false;
 		while (!valid) {
 			index = rng.nextInt(knownSize);
 			if (knownIDs[index] != id)
 				valid = true;
 		}
-		
+
 		return knownIDs[index];
 	}
 
@@ -364,25 +355,25 @@ public class MessagingNode implements Node {
 		serverIP = ip;
 		serverPort = port;
 	}
-	
+
 	@Override
 	public String getServerIP() {
 		return serverIP;
 	}
-	
+
 	@Override
 	public int getServerPort() {
 		return serverPort;
 	}
-	
+
 	public Socket getRegistrySocket() {
 		return registrySocket;
 	}
-	
+
 	public void setRegistrySocket(Socket socket) {
 		registrySocket = socket;
 	}
-	
+
 	//algorithm to find the ID in the routing table that is closest behind the destination
 	//It will never overshoot otherwise messages will bounce around
 	private int findClosestIDIndex(int destinationID) {
@@ -394,14 +385,14 @@ public class MessagingNode implements Node {
 		for (int i = 0; i < table.size(); i++) {
 
 			int tempID = table.get(i).getID();
-			
+
 			//standardize as this is circular
 			if (tempID > destinationID)
 				tempID -= 128;
-			
+
 			//get node distance, want to be as low as possible as that maximizes distance jumped
 			distance = destinationID - tempID;
-			
+
 			if (closest > distance) {
 				closest = destinationID - tempID;
 				routingIndex = i;
@@ -415,8 +406,8 @@ public class MessagingNode implements Node {
 	public void exit() {
 		System.out.println("Exiting");
 		try {
-		registrySocket.close();
-		System.exit(0);
+			registrySocket.close();
+			System.exit(0);
 		} catch (IOException e) {
 			System.out.println("Socket already closed. Exiting");
 		}
