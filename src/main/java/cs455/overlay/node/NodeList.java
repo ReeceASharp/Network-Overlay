@@ -23,7 +23,6 @@ public class NodeList {
 			nodes.add(new NodeData(ip, port, id, socket));
 		}
 		return id;
-		
 	}
 	
 	public synchronized int removeNode(String ip, int port) {
@@ -33,6 +32,7 @@ public class NodeList {
 		}
 		return index;
 	}
+	
 	
 	@Override
 	public String toString() {
@@ -47,19 +47,19 @@ public class NodeList {
 	}
 	
 	private synchronized int getOpenID() {
-		boolean found = true;
+		boolean valid;
 		int id;
 		
 		do {
+			valid = true;
 			//generate a number
 			id = rng.nextInt(128);
 			
 			//check the array for it
 			for (NodeData nd : nodes)
 				if (nd.getID() == id)
-					found = false;
-			
-		} while (!found);
+					valid= false;
+		} while (!valid);
 		return id;
 	}
 	
@@ -69,7 +69,7 @@ public class NodeList {
 	
 	//Check to see if the IP:port combination is already inside of the registry, shouldn't really happen though
 	//as the port allocation on the server is dynamic
-	private int contains(String ip, int port) {
+	public int contains(String ip, int port) {
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getIP().equals(ip) && nodes.get(i).getPort() == port)
 				return i;
@@ -98,8 +98,6 @@ public class NodeList {
 	public NodeData get(int i) {
 		return nodes.get(i);
 	}
-	
-	
 	
 	public synchronized int size() {
 		return nodes.size();

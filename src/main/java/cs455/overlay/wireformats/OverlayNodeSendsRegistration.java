@@ -30,7 +30,6 @@ public class OverlayNodeSendsRegistration implements Event {
 		
 		//retrieve IP address
 		int ipLength = din.readInt();
-		//System.out.printf("IP Length: '%d'%n", ipLength);
 		
 		byte[] ipBytes = new byte[ipLength];
 		din.readFully(ipBytes);

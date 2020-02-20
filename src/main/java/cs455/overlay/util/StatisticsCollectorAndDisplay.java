@@ -7,11 +7,12 @@ public class StatisticsCollectorAndDisplay {
 	
 	private class NodeResult {
 		
-		final int sentPackets;
-		final int receivedPackets;
-		final int relayedPackets;
-		final long sentSum;
-		final long receivedSum;
+		int sentPackets = 0;
+		int receivedPackets = 0;
+		int relayedPackets = 0;
+		long sentSum = 0;
+		long receivedSum = 0;
+		boolean ready = false;
 		
 		public NodeResult(int sp, int rp, int rlp, long ss, long rs) {
 			sentPackets = sp;
@@ -19,6 +20,7 @@ public class StatisticsCollectorAndDisplay {
 			relayedPackets = rlp;
 			sentSum = ss;
 			receivedSum = rs;
+			ready = true;
 		}
 		
 		@Override
@@ -26,12 +28,12 @@ public class StatisticsCollectorAndDisplay {
 			return String.format("%10s %10d %10d %15d %15d", 
 					sentPackets, receivedPackets, relayedPackets, sentSum, receivedSum);
 		}
+		
 	}
 	
 	
 	
 	public StatisticsCollectorAndDisplay(int size, int[] idList) {
-		System.out.println("StatististicsCollectorAndDisplay::ctor");
 		results = new NodeResult[size];
 		this.idList = idList;
 	}
@@ -53,7 +55,6 @@ public class StatisticsCollectorAndDisplay {
 		}
 		
 		sb.append(sumOutput() + "\n");
-		
 		return sb.toString();
 	}
 	
@@ -65,7 +66,6 @@ public class StatisticsCollectorAndDisplay {
 		long totalSumSent = 0;
 		long totalSumReceived = 0;
 		
-		
 		for (NodeResult r : results) {
 			totalSent += r.sentPackets;
 			totalReceived += r.receivedPackets;
@@ -73,23 +73,29 @@ public class StatisticsCollectorAndDisplay {
 			totalSumSent += r.sentSum;
 			totalSumReceived += r.receivedSum;
 		}
-			
-			
-			
-		return String.format("%10s %10s %10s %10s %15s %15s%n",
-				"Sum", totalSent, totalReceived, totalRelayed, totalSumSent, totalSumReceived);
+		
+		
+		return String.format("%10s %10s %10s %10s %15s %15s",
+				"SUM", totalSent, totalReceived, totalRelayed, totalSumSent, totalSumReceived);
 	}
 	
-	public synchronized boolean missingData() {
-		for (NodeResult r : results)
-			if (r == null)
+	public synchronized boolean isMissingData() {
+		for (NodeResult r : results) {
+			if (r == null) {
 				return false;
+			}
+			if (!r.ready) {
+				return false;
+			}
+		}
 		return true;
 	}
 	
-	//reset to an empty array
+	//reset to an empty array, stops other threads from attempting to display
 	public void reset() {
-		results = new NodeResult[] {};
+		for (int i = 0; i < results.length; i++) {
+			results[i] = null;
+		}
 	}
 }
 

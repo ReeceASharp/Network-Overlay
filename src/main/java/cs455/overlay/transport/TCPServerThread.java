@@ -16,7 +16,6 @@ public class TCPServerThread implements Runnable {
 	int port;
 	
 
-	//private volatile boolean listening;
 	public TCPServerThread(Node node) {
 		this(node, 0);
 	}
@@ -41,19 +40,11 @@ public class TCPServerThread implements Runnable {
 	@Override
 	public void run() {
 
-		//System.out.printf("Address: %s, Port: %s %n", serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
-		System.out.printf("Server listening on Port:%s%n", serverSocket.getLocalPort());
+		System.out.printf("ServerPort:%s%n", serverSocket.getLocalPort());
 		//listen for new connections to this program
 		try {
 			while (true) {
-					//System.out.println("TCPServerThread::run::blocking");
 					Socket clientSocket = serverSocket.accept();
-					
-					//String value = clientSocket.getLocalAddress().getHostAddress();
-					//System.out.println("VALUE: " + value);
-					
-					//System.out.printf("Received Connection: %s%n", clientSocket.getRemoteSocketAddress());
-					
 					
 					//spawn a thread to handle that specific connection, 
 					new Thread(new TCPReceiverThread(clientSocket, node)).start();
@@ -70,12 +61,6 @@ public class TCPServerThread implements Runnable {
 		
 		System.out.println("TCPServerThread::run::exiting");
 	}
-	
-	/*
-	public void stop() {
-		listening = false;
-	}
-	*/
 	
 	public void stopServer() throws IOException {
 		serverSocket.close();

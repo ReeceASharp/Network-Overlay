@@ -13,14 +13,11 @@ public class RegistryRequestsTrafficSummary implements Event {
 		return type;
 	}
 	
-	public RegistryRequestsTrafficSummary() {
-		System.out.println("Creating Summary");
-	}
+	public RegistryRequestsTrafficSummary() { }
 	
 
 	@Override
 	public byte[] getBytes() {
-		System.out.println("Getting Information");
 		
 		byte[] marshalledBytes = null;
 		

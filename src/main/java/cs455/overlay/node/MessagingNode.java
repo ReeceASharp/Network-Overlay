@@ -51,8 +51,7 @@ public class MessagingNode implements Node {
 		InetAddress ip = InetAddress.getLocalHost();
 		String host = ip.getHostName();
 
-		System.out.printf("Host: %s, HostIP: %s,",
-				host, ip.getHostAddress());
+		System.out.printf("Host: %s, HostIP: %s, ", host, ip.getHostAddress());
 		
 		// get instance of self to pass a reference into the threads
 		MessagingNode node = new MessagingNode();
@@ -67,7 +66,6 @@ public class MessagingNode implements Node {
 		// *** init
 		
 		try {
-			//sleep for .1 seconds while the Threads get setup
 			sendRegistration(node, registryHost, registryPort);
 		} catch (IOException e) {
 			System.out.printf("Wasn't able to connect to: %s:%d%n", registryHost, registryPort);
@@ -163,7 +161,6 @@ public class MessagingNode implements Node {
 		for (int i = 0; i < maxSending; i++) {
 			int destinationID = getRandomKnownNode();
 			int payload = rng.nextInt();
-			//System.out.printf("Packet #%d, Dest: %d%n", i, destinationID);
 			Event temp = (Event) new OverlayNodeSendsData(destinationID, id, payload, 0, new int[] {});
 			
 			//increment sent
@@ -198,7 +195,6 @@ public class MessagingNode implements Node {
 		byte[] marshalledBytes = new OverlayNodeReportsTaskFinished(serverIP, serverPort, id).getBytes();
 		
 		try {
-			//System.out.println("Sending Confirmation");
 			sendMessage(registrySocket, marshalledBytes);
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -208,14 +204,12 @@ public class MessagingNode implements Node {
 
 	//handle the event
 	private void dataPacketProcess(Event temp) {
-		//System.out.println("Processing Packet");
 		OverlayNodeSendsData data = (OverlayNodeSendsData) temp;
 		
 
 		
 		//check if the node goes here, otherwise relay
 		if (data.getDestinationID() == id) {
-			//System.out.println("PACKET MADE IT TO DESTINATION");
 			
 			receivedSum.addAndGet(data.getPayload());
 			
@@ -224,20 +218,17 @@ public class MessagingNode implements Node {
 			
 		}
 		else {
-			//System.out.println("ROUTING PACKET");
 			//find node in routing list, or send it somewhere else
 			Socket socket = null;
 			int index = table.contains(data.getDestinationID());
 			if (index > -1) {
 				socket = table.get(index).getEntrySocket();
-				//System.out.println("DIRECT SOCKET: " + socket);
 				
 			}
 			else {
 				index = findClosestIDIndex(data.getDestinationID());
 
 				socket = table.get(index).getEntrySocket();
-				//System.out.println("ROUTING SOCKET: " + socket);
 			}
 			
 			//increment relay
@@ -256,7 +247,6 @@ public class MessagingNode implements Node {
 			}
 			
 			if (visitedTotal != visited.length) {
-				//System.out.println("NODE VISITED TOTAL:" + visitedTotal + ", Array total:" + visited.length + ", DONT MATCH");
 				return;
 			}
 			else {
@@ -264,7 +254,6 @@ public class MessagingNode implements Node {
 						visitedTotal, visited).getBytes();
 			
 			try {
-				//System.out.println("Attempting to Relay Packets");
 				sendMessage(socket, marshalledBytes);
 			} catch (IOException e) {
 				
@@ -303,9 +292,13 @@ public class MessagingNode implements Node {
 
 	private void deregistationStatus(Event e) {
 		RegistryReportsDeregistrationStatus message = (RegistryReportsDeregistrationStatus) e;
-		System.out.printf("DeregistrationStatus:: %s, ID: %d%n", message.getInfo(), message.getStatus());
+
+		//register handles message, simply output what the result is
+		System.out.printf("%s ID: %d%n", message.getInfo(), message.getStatus());
 		
-		//exit now
+		
+		//After receiving a deregistration acknowledgement, either the it was successful, or it wasn't
+		//either way, the MessagingNode has no way of connecting again, so exit
 		exit();
 	}
 
@@ -313,9 +306,10 @@ public class MessagingNode implements Node {
 	private void registrationStatus(Event e) {
 		RegistryReportsRegistrationStatus message = (RegistryReportsRegistrationStatus) e;
 		
-		//updates the id regardless, doesn't matter
+		//updates the id, it'll either stay at the initialized value of -1, or update to a valid ID
 		id = message.getStatus();
 		
+		//print out message
 		System.out.println(message.getInfo());
 	}
 
@@ -400,7 +394,6 @@ public class MessagingNode implements Node {
 		for (int i = 0; i < table.size(); i++) {
 
 			int tempID = table.get(i).getID();
-			//System.out.printf("i: %d, id: %d, %n", i, tempID);
 			
 			//standardize as this is circular
 			if (tempID > destinationID)
@@ -409,7 +402,6 @@ public class MessagingNode implements Node {
 			//get node distance, want to be as low as possible as that maximizes distance jumped
 			distance = destinationID - tempID;
 			
-			//System.out.printf("Closest: %d, Distance: %d%n", closest, distance);
 			if (closest > distance) {
 				closest = destinationID - tempID;
 				routingIndex = i;

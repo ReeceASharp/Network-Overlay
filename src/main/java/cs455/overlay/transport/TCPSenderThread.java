@@ -16,7 +16,6 @@ public class TCPSenderThread implements Runnable {
 	@Override
 	public void run() {
 		//using the established socket to send information
-		//System.out.print("+");
 		int msgLength = msg.length;
 		try {
 			DataOutputStream dout = new DataOutputStream(this.socket.getOutputStream());
@@ -29,11 +28,9 @@ public class TCPSenderThread implements Runnable {
 				
 				dout.flush();
 			}
-			//System.out.println("Successfully wrote " + msgLength + " bytes to " + socket);
 		} catch (IOException e) {
 			System.out.println("TCPSender::run::writing_to_output: " + e);
 		}
-		//System.out.println("TCPSenderThread done");
 	}
 
 }

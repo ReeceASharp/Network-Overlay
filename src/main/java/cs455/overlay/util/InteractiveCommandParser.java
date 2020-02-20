@@ -22,9 +22,7 @@ public class InteractiveCommandParser implements Runnable {
 	
 	@Override
 	public void run() {
-		//System.out.println("InteractiveCommandParser::run");
 		while(running) {
-			//System.out.print("Input: ");
 			String command = input.nextLine();
 			parseInput(command);
 		}
@@ -66,14 +64,15 @@ public class InteractiveCommandParser implements Runnable {
 	 * 
 	 */
 	private void help() {
+		System.out.println("Available Commands: ");
+		System.out.println("*******************");
+		
 		switch (type) {
 		case Protocol.MESSAGING:
-			System.out.println("Available Commands: ");
 			for (String s : Commands.MESSAGING_COMMANDS)
 				System.out.println(s);
 			break;
 		case Protocol.REGISTRY:
-			System.out.println("Available Commands: ");
 			for (String s : Commands.REGISTER_COMMANDS)
 				System.out.println(s);
 			

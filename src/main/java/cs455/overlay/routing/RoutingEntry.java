@@ -39,7 +39,6 @@ public class RoutingEntry {
 	public void openConnections() {
 		try {
 			entrySocket = new Socket(ip, port);
-			//System.out.println("Setup Socket: " + entrySocket);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

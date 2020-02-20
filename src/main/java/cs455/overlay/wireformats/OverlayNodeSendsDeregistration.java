@@ -22,7 +22,6 @@ public class OverlayNodeSendsDeregistration implements Event {
 	}
 	
 	public OverlayNodeSendsDeregistration(byte[] marshalledBytes) throws IOException {
-		//System.out.println("OverlayNodeSendsDregistration::ctor");
 		//create a wrapper around the bytes to leverage some methods to easily extract values
 		ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
 		DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
@@ -32,7 +31,6 @@ public class OverlayNodeSendsDeregistration implements Event {
 		
 		//retrieve IP address
 		int ipLength = din.readInt();
-		//System.out.printf("IP Length: '%d'%n", ipLength);
 		
 		byte[] ipBytes = new byte[ipLength];
 		din.readFully(ipBytes);
@@ -68,7 +66,6 @@ public class OverlayNodeSendsDeregistration implements Event {
 			byte[] ipBytes = ip.getBytes();
 			dout.writeInt(ipBytes.length);
 			dout.write(ipBytes); 
-			//System.out.println("IP: " + ip);
 			
 			//write port
 			dout.writeInt(port);

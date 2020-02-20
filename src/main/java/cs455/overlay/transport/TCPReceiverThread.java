@@ -21,7 +21,6 @@ public class TCPReceiverThread implements Runnable {
 	
 	public TCPReceiverThread(Socket socket, Node node) throws IOException {
 		//pg 9, 4.1
-		//System.out.printf("TCPReceiverThread::ctor(), Listening on Socket: '%s', IP: %s%n", socket.toString(), node.getServerIP());
 		this.socket = socket;
 		dataIn = new DataInputStream(socket.getInputStream());
 		this.node = node;
@@ -40,7 +39,7 @@ public class TCPReceiverThread implements Runnable {
 				byte[] incomingMessage = null;
 				dataLength = dataIn.readInt();
 
-				//System.out.println("Received a message length of: " + dataLength + ", from " + socket);
+				//synchronize reads from a socket to make sure it's all read in chunks
 				synchronized(socket) {
 					incomingMessage = new byte[dataLength];
 					dataIn.readFully(incomingMessage, 0, dataLength);
@@ -52,21 +51,18 @@ public class TCPReceiverThread implements Runnable {
 				//received message, decode
 				node.onEvent(e, socket);
 				
-				//System.out.printf("Received Message: '%s'%n", new String(incomingMessage));
 				
 			} catch (SocketException se) {
 				System.out.println("TCPReceiverThread::run::socketException: " + se.getMessage());
 				break;
 			} catch (IOException ioe) {
+				System.out.println("Connection closed, no longer listening to: " + socket.getRemoteSocketAddress());
 				
-				System.out.println("DataLength: " + dataLength);
-				System.out.println("Socket unexpectedly closed, no longer listening to: " + socket.getRemoteSocketAddress() + 
-						", DataLength: " + dataLength);
-				//TODO: at this point the thread should call the node to remove this data from its registry
 				break;
+			}  catch (NullPointerException ne) {
+				ne.printStackTrace();
 			} catch (Exception e) {
-				System.out.println("CAUGHT AN EXCEPTION REGARDING RECEIVER");
-				System.out.println("Exception: '" + e + "'");
+				e.printStackTrace();
 			}
 		}
 		try {

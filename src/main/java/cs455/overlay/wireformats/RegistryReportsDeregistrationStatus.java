@@ -61,9 +61,7 @@ public class RegistryReportsDeregistrationStatus implements Event {
 			dout.write(infoBytes);
 			
 			dout.flush();
-			
-			System.out.printf("RegistryReportsRegistrationStatus: #: '%d', '%s'%n", status, information);
-			
+					
 			message = byteOutStream.toByteArray();
 			byteOutStream.close();
 			dout.close();

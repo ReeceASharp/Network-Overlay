@@ -54,7 +54,6 @@ public class RegistrySendsNodeManifest implements Event {
 			
 			
 			
-			//System.out.printf("Node: %s, %d, %d%n", ip, port, id);
 			nodes[i] = new RoutingEntry(ip, port, id);
 		}
 		

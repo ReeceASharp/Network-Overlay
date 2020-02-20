@@ -16,7 +16,6 @@ public class RoutingTable {
 	
 	//only used by the Registry to generate a list of nodes to pass on to each MessagingNode
 	public static RoutingTable generateTable(NodeList nodeList, int listOwnerIndex, int tableSize) {
-		//System.out.println("Generating Table for: " + nodeList.get(listOwnerIndex));
 		
 		int nodeListSize = nodeList.size();
 		RoutingEntry[] table = new RoutingEntry[tableSize];
